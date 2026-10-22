@@ -6,6 +6,7 @@ import app.models  # noqa: F401 - Registra las 32 tablas relacionales en SQLAlch
 from app.blueprints.auth import auth_bp
 from app.blueprints.catalogos import catalogos_bp
 from app.blueprints.osal import osal_bp
+from app.blueprints.campanas import campanas_bp
 
 
 def create_app(config_class=Config):
@@ -25,6 +26,7 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(catalogos_bp)
     app.register_blueprint(osal_bp)
+    app.register_blueprint(campanas_bp)
 
     @app.route("/api/health", methods=["GET"])
     def health_check():
