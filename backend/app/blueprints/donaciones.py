@@ -302,3 +302,67 @@ def descargar_certificado_tributario_pdf(donacion_economica_id: int):
         as_attachment=True,
         download_name=f"Certificado_Tributario_{recibo.numero_consecutivo}.pdf"
     )
+
+
+@donaciones_bp.route("/especie/<int:donacion_especie_id>/trazabilidad", methods=["PUT", "POST"])
+@jwt_required(optional=True)
+def actualizar_trazabilidad_logistica(donacion_especie_id: int):
+    """
+    CU09 - Trazabilidad Logística:
+    Actualiza el estado de una donación en especie siguiendo el flujo (RECIBIDO -> EN_BODEGA -> ENTREGADO)
+    e inserta el registro de seguimiento en trazabilidad_entregas.
+    """
+    data = request.get_json(silent=True) or {}
+    identidad = get_jwt_identity()
+    usuario_id = int(identidad) if identidad else None
+
+    don_esp = db.session.get(DonacionEspecie, donacion_especie_id)
+    if not don_esp:
+        return jsonify({
+            "error": "Donación en especie no encontrada",
+            "mensaje_humano": "No encontramos el registro de donación en especie que deseas actualizar."
+        }), 404
+
+    nuevo_estado = (data.get("estado_logistico") or "EN_BODEGA").strip().upper()
+    estados_validos = {"RECIBIDO", "EN_BODEGA", "ENTREGADO"}
+    if nuevo_estado not in estados_validos:
+        return jsonify({
+            "error": "Estado logístico inválido",
+            "mensaje_humano": "El estado debe ser RECIBIDO, EN_BODEGA o ENTREGADO."
+        }), 400
+
+    ubicacion = (data.get("ubicacion_reportada") or "Bodega Comunitaria Sabana Norte").strip()
+    observacion = (data.get("observacion") or f"Cambio de estado a {nuevo_estado}").strip()
+
+    don_esp.estado_logistico_actual = nuevo_estado
+    hito = TrazabilidadEntrega(
+        donacion_especie_id=don_esp.id,
+        estado_logistico=nuevo_estado,
+        ubicacion_reportada=ubicacion,
+        observacion=observacion
+    )
+    db.session.add(hito)
+
+    db.session.add(LogAuditoria(
+        usuario_id=usuario_id,
+        accion="ACTUALIZAR_TRAZABILIDAD_ESPECIE",
+        entidad_afectada="trazabilidad_entregas",
+        registro_id=don_esp.id,
+        detalle=f"Donación especie #{don_esp.id} pasó a '{nuevo_estado}' en {ubicacion}.",
+        direccion_ip=request.remote_addr
+    ))
+
+    db.session.commit()
+
+    return jsonify({
+        "mensaje_humano": f"¡Trazabilidad actualizada! El aporte '{don_esp.descripcion_articulos}' ahora se encuentra en estado {nuevo_estado}.",
+        "estado_logistico_actual": nuevo_estado,
+        "hito": {
+            "id": hito.id,
+            "estado_logistico": hito.estado_logistico,
+            "ubicacion_reportada": hito.ubicacion_reportada,
+            "observacion": hito.observacion,
+            "fecha_actualizacion": hito.fecha_actualizacion.isoformat()
+        }
+    }), 200
+
