@@ -30,3 +30,4 @@ Blueprint registrado en `backend/app/blueprints/campanas.py` bajo `/api/campanas
 - **`PublicarNecesidadComponent` (`src/app/features/campanas/publicar-necesidad.component.ts`)**:
   - Presenta las campañas en **Tarjetas (Cards)** limpias con barras de progreso de alto contraste, etiquetas de municipio/vereda y enlaces directos para donar o postularse como voluntario.
   - Incluye el formulario dinámico para que la OSAL agregue múltiples necesidades con respaldo **Offline-First** automático.
+

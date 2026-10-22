@@ -55,3 +55,4 @@ npm run build
   - **Donante Solidario (Tabio):** `donante@conexion.org`
   - **Voluntaria Rural:** `voluntario@conexion.org`
 - **Resiliencia en Zonas sin Señal:** Todos los formularios (Wizard de OSAL, Campañas, Donaciones y Voluntariado) guardan automáticamente un borrador local en el dispositivo y muestran alertas humanas de alto contraste (WCAG 2.2) cuando la conexión rural es inestable.
+

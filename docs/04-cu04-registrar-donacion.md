@@ -29,3 +29,4 @@ Blueprint registrado en `backend/app/blueprints/donaciones.py`:
 - **`RegistrarDonacionComponent` (`src/app/features/donaciones/registrar-donacion.component.ts`)**:
   - Incluye conmutador accesible entre Donación Económica y Donación en Especie, carga de comprobante y persistencia continua en caché local.
   - Ante pérdida de conectividad rural (`err.status === 0`), muestra literalmente el mensaje humano: *"Tu conexión parece inestable. Hemos guardado tu donación para enviarla en cuanto recuperes la señal"*.
+

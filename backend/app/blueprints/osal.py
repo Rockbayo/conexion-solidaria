@@ -214,3 +214,4 @@ def listar_fundaciones():
             "total_documentos": len(f.documentos_legales)
         })
     return jsonify({"fundaciones": resultado}), 200
+

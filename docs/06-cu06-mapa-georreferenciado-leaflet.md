@@ -29,3 +29,4 @@ Blueprint registrado en `backend/app/blueprints/mapa.py`:
 - **`MapaSabanaComponent` (`src/app/features/mapa/mapa-sabana.component.ts`)**:
   - Renderiza el mapa interactivo centrado en la Sabana Norte de Cundinamarca (`lat: 4.965, lng: -74.01`) con marcadores circulares de alto contraste y *popups* informativos.
   - Incluye tarjetas laterales accesibles (alternativa textual conforme a WCAG 2.2) que al seleccionarse centran el mapa en la vereda correspondiente.
+

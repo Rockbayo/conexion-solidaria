@@ -27,3 +27,4 @@ El módulo **CU05** conecta a los voluntarios rurales con las labores específic
 
 - **`PostulacionVoluntariadoComponent` (`src/app/features/voluntariado/postulacion-voluntariado.component.ts`)**:
   - Permite seleccionar la labor, indicar horario y horas de compromiso con respaldo **Offline-First** y visualizar las asignaciones confirmadas.
+

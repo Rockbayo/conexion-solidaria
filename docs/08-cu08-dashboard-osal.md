@@ -29,3 +29,4 @@ Blueprint registrado en `backend/app/blueprints/dashboard.py`:
 
 - **`DashboardOsalComponent` (`src/app/features/dashboard/dashboard-osal.component.ts`)**:
   - Presenta tarjetas KPI de alto contraste y barras de progreso detalladas por campaña.
+

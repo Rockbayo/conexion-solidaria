@@ -25,3 +25,4 @@ El módulo **CU10** permite a cada voluntario administrar su matriz de competenc
 
 - **`PerfilHabilidadesComponent` (`src/app/features/voluntariado/perfil-habilidades.component.ts`)**:
   - Interfaz accesible para agregar/actualizar competencias (Agroecología, Pedagogía Rural, Logística Veredal), configurar horas semanales y disposición de desplazamiento rural.
+

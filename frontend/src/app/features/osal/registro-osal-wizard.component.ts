@@ -470,3 +470,4 @@ export class RegistroOsalWizardComponent implements OnInit {
     this.mensajeExito.set('');
   }
 }
+

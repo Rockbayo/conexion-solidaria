@@ -28,3 +28,4 @@ Cada transición actualiza `donaciones_especie.estado_logistico_actual` e insert
 
 - **`TrazabilidadLogisticaComponent` (`src/app/features/donaciones/trazabilidad-logistica.component.ts`)**:
   - Muestra cada donación en especie en una tarjeta de alto contraste con barra visual de 3 etapas (`1. RECIBIDO -> 2. EN BODEGA -> 3. ENTREGADO EN VEREDA`) y su bitácora completa de movimientos.
+

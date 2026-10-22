@@ -32,3 +32,4 @@ Blueprints registrados en `backend/app/blueprints/osal.py` y `backend/app/bluepr
   - Almacena en caché local los catálogos maestros de la Sabana Norte y ofrece persistencia automática de borradores (`guardarBorradorFormulario` / `cargarBorradorFormulario`).
 - **`RegistroOsalWizardComponent` (`src/app/features/osal/registro-osal-wizard.component.ts`)**:
   - Implementa el Wizard accesible de 3 pasos con indicadores claros de progreso (`Paso 1 de 3`) y guardado automático tras cada cambio. Si el envío falla por corte de señal (`err.status === 0`), despliega un mensaje humano informando que los datos quedaron resguardados localmente.
+

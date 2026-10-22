@@ -164,3 +164,4 @@ def crear_campana():
         "mensaje_humano": f"¡Excelente! La campaña '{titulo}' ya está visible para los donantes y voluntarios de la Sabana Norte.",
         "campana_id": nueva_campana.id
     }), 201
+

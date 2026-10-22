@@ -26,3 +26,4 @@ El módulo **CU07** expone la generación dinámica de un **Certificado de Donac
 ## 3. Integración UI (Frontend Angular)
 
 En `RegistrarDonacionComponent` (`src/app/features/donaciones/registrar-donacion.component.ts`), cada aporte económico muestra el botón de alto contraste **"📄 Descargar Certificado Tributario PDF"**, permitiendo obtener el soporte contable con un solo toque.
+

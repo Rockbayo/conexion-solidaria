@@ -68,3 +68,4 @@ def obtener_catalogos_generales():
             for h in habilidades
         ],
     }), 200
+

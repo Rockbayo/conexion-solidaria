@@ -85,3 +85,4 @@ def obtener_metricas_osal():
         },
         "campanas_desempeno": resumen_campanas
     }), 200
+

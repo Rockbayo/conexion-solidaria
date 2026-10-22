@@ -261,3 +261,4 @@ def eliminar_habilidad_voluntario(registro_id: int):
     db.session.delete(rel)
     db.session.commit()
     return jsonify({"mensaje_humano": "Habilidad retirada de tu perfil."}), 200
+
