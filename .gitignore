@@ -1,0 +1,26 @@
+# Python / Backend
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+.env
+*.sqlite3
+*.db
+instance/
+backend/uploads/
+
+# Angular / Frontend
+node_modules/
+dist/
+.angular/
+out-tsc/
+coverage/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
