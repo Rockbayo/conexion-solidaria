@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
+import { getApiBaseUrl } from '../../core/config/api.config';
 
 interface DashboardMetricas {
   kpis: {
@@ -146,7 +147,7 @@ export class DashboardOsalComponent implements OnInit {
   datos = signal<DashboardMetricas | null>(null);
 
   ngOnInit(): void {
-    this.http.get<DashboardMetricas>('http://localhost:5000/api/dashboard/osal').subscribe({
+    this.http.get<DashboardMetricas>(`${getApiBaseUrl()}/dashboard/osal`).subscribe({
       next: (res) => this.datos.set(res),
       error: () => {
         this.datos.set({

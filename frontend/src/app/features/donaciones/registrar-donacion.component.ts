@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { OfflineSyncService, CatalogosGenerales } from '../../core/services/offline-sync.service';
 import { AuthService } from '../../core/services/auth.service';
+import { getApiBaseUrl } from '../../core/config/api.config';
 import { CampanaItem } from '../campanas/publicar-necesidad.component';
 
 interface DonacionResumen {
@@ -186,7 +187,7 @@ interface DonacionResumen {
                     </div>
                     <a
                       class="cs-btn btn-pdf"
-                      [href]="'http://localhost:5000/api/donaciones/economicas/' + d.economica.id + '/certificado-pdf'"
+                      [href]="apiBaseUrl + '/donaciones/economicas/' + d.economica.id + '/certificado-pdf'"
                       target="_blank"
                       rel="noopener"
                     >
@@ -237,6 +238,7 @@ export class RegistrarDonacionComponent implements OnInit {
   private readonly offlineSync = inject(OfflineSyncService);
   private readonly authService = inject(AuthService);
   private readonly DRAFT_KEY = 'cu04_borrador_donacion';
+  readonly apiBaseUrl = getApiBaseUrl();
 
   catalogos = signal<CatalogosGenerales | null>(null);
   campanas = signal<CampanaItem[]>([]);
@@ -277,14 +279,14 @@ export class RegistrarDonacionComponent implements OnInit {
   }
 
   cargarCampanas(): void {
-    this.http.get<{ campanas: CampanaItem[] }>('http://localhost:5000/api/campanas').subscribe({
+    this.http.get<{ campanas: CampanaItem[] }>(`${this.apiBaseUrl}/campanas`).subscribe({
       next: (res) => this.campanas.set(res.campanas),
       error: () => {},
     });
   }
 
   cargarDonaciones(): void {
-    this.http.get<{ donaciones: DonacionResumen[] }>('http://localhost:5000/api/donaciones').subscribe({
+    this.http.get<{ donaciones: DonacionResumen[] }>(`${this.apiBaseUrl}/donaciones`).subscribe({
       next: (res) => this.donaciones.set(res.donaciones),
       error: () => {},
     });
@@ -318,7 +320,7 @@ export class RegistrarDonacionComponent implements OnInit {
       donante_id: this.authService.usuarioActual()?.donante_id || 1,
     };
 
-    this.http.post<{ mensaje_humano: string }>('http://localhost:5000/api/donaciones', payload).subscribe({
+    this.http.post<{ mensaje_humano: string }>(`${this.apiBaseUrl}/donaciones`, payload).subscribe({
       next: (res) => {
         this.enviando.set(false);
         this.mensajeExito.set(res.mensaje_humano);

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { OfflineSyncService, CatalogosGenerales } from '../../core/services/offline-sync.service';
+import { getApiBaseUrl } from '../../core/config/api.config';
 
 export interface PinSabanaNorte {
   fundacion_id: number;
@@ -166,10 +167,11 @@ export class MapaSabanaComponent implements OnInit, AfterViewInit {
   }
 
   cargarPines(): void {
+    const base = getApiBaseUrl();
     const url =
       this.municipioFiltro > 0
-        ? `http://localhost:5000/api/mapa/pines?municipio_id=${this.municipioFiltro}`
-        : 'http://localhost:5000/api/mapa/pines';
+        ? `${base}/mapa/pines?municipio_id=${this.municipioFiltro}`
+        : `${base}/mapa/pines`;
 
     this.http.get<{ pines: PinSabanaNorte[] }>(url).subscribe({
       next: (res) => {

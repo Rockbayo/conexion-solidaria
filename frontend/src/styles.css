@@ -208,3 +208,55 @@ body {
 .sap-input:focus {
   border-color: var(--sap-brand-primary);
 }
+
+.sap-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.sap-badge-ok {
+  background-color: var(--sap-status-ok-bg);
+  color: var(--sap-status-ok-text);
+  border-color: var(--sap-status-ok-border);
+}
+
+.sap-badge-warn {
+  background-color: var(--sap-status-warn-bg);
+  color: var(--sap-status-warn-text);
+  border-color: var(--sap-status-warn-border);
+}
+
+.sap-badge-info {
+  background-color: #E8F1FF;
+  color: var(--sap-brand-primary);
+  border-color: #93C5FD;
+}
+
+.sap-form-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--sap-text-primary);
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.sap-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.95rem;
+  border: 1px solid var(--sap-border-strong);
+  border-radius: 4px;
+  background-color: var(--sap-bg-surface);
+  color: var(--sap-text-primary);
+}
+
+.sap-input:focus {
+  border-color: var(--sap-brand-primary);
+}
+

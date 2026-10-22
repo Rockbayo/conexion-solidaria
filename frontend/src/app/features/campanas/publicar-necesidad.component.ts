@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { OfflineSyncService, CatalogosGenerales } from '../../core/services/offline-sync.service';
 import { AuthService } from '../../core/services/auth.service';
+import { getApiBaseUrl } from '../../core/config/api.config';
 
 export interface CampanaItem {
   id: number;
@@ -248,7 +249,7 @@ export class PublicarNecesidadComponent implements OnInit {
   }
 
   cargarCampanas(): void {
-    this.http.get<{ campanas: CampanaItem[] }>('http://localhost:5000/api/campanas').subscribe({
+    this.http.get<{ campanas: CampanaItem[] }>(`${getApiBaseUrl()}/campanas`).subscribe({
       next: (res) => this.campanas.set(res.campanas),
       error: () => {
         this.campanas.set([
@@ -305,7 +306,7 @@ export class PublicarNecesidadComponent implements OnInit {
       fundacion_id: this.authService.usuarioActual()?.fundacion_id || 1,
     };
 
-    this.http.post<{ mensaje_humano: string }>('http://localhost:5000/api/campanas', payload).subscribe({
+    this.http.post<{ mensaje_humano: string }>(`${getApiBaseUrl()}/campanas`, payload).subscribe({
       next: (res) => {
         this.guardando.set(false);
         this.avisoHumano.set(res.mensaje_humano);

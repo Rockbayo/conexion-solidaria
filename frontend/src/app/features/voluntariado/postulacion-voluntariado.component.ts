@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { OfflineSyncService } from '../../core/services/offline-sync.service';
 import { AuthService } from '../../core/services/auth.service';
+import { getApiBaseUrl } from '../../core/config/api.config';
 
 interface LaborItem {
   necesidad_id: number;
@@ -172,7 +173,7 @@ export class PostulacionVoluntariadoComponent implements OnInit {
   }
 
   cargarDatos(): void {
-    this.http.get<{ labores: LaborItem[]; postulaciones: PostulacionItem[] }>('http://localhost:5000/api/voluntariado/labores').subscribe({
+    this.http.get<{ labores: LaborItem[]; postulaciones: PostulacionItem[] }>(`${getApiBaseUrl()}/voluntariado/labores`).subscribe({
       next: (res) => {
         this.labores.set(res.labores);
         this.postulaciones.set(res.postulaciones);
@@ -197,7 +198,7 @@ export class PostulacionVoluntariadoComponent implements OnInit {
       voluntario_id: this.authService.usuarioActual()?.voluntario_id || 1,
     };
 
-    this.http.post<{ mensaje_humano: string }>('http://localhost:5000/api/voluntariado/postular', payload).subscribe({
+    this.http.post<{ mensaje_humano: string }>(`${getApiBaseUrl()}/voluntariado/postular`, payload).subscribe({
       next: (res) => {
         this.enviando.set(false);
         this.mensajeHumano.set(res.mensaje_humano);

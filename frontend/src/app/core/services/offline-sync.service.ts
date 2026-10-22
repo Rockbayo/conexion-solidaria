@@ -2,6 +2,7 @@ import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap, catchError } from 'rxjs';
+import { getApiBaseUrl } from '../config/api.config';
 
 export interface CatalogosGenerales {
   municipios_sabana_norte: Array<{ id: number; codigo_dane: string; nombre: string; latitud_centro: number; longitud_centro: number }>;
@@ -82,7 +83,7 @@ export class OfflineSyncService {
   readonly modoOfflineActivo = signal(false);
 
   obtenerCatalogos(): Observable<CatalogosGenerales> {
-    return this.http.get<CatalogosGenerales>('http://localhost:5000/api/catalogos/general').pipe(
+    return this.http.get<CatalogosGenerales>(`${getApiBaseUrl()}/catalogos/general`).pipe(
       tap((datos) => {
         this.modoOfflineActivo.set(false);
         if (isPlatformBrowser(this.platformId)) {

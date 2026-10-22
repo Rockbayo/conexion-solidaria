@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { OfflineSyncService, CatalogosGenerales } from '../../core/services/offline-sync.service';
 import { AuthService } from '../../core/services/auth.service';
+import { getApiBaseUrl } from '../../core/config/api.config';
 
 interface CompetenciaVoluntario {
   id: number;
@@ -174,7 +175,7 @@ export class PerfilHabilidadesComponent implements OnInit {
           dispuesto_desplazamiento_rural: boolean;
           competencias: CompetenciaVoluntario[];
         };
-      }>(`http://localhost:5000/api/voluntariado/perfil-habilidades?voluntario_id=${volId}`)
+      }>(`${getApiBaseUrl()}/voluntariado/perfil-habilidades?voluntario_id=${volId}`)
       .subscribe({
         next: (res) => {
           this.nombreVoluntario.set(res.voluntario.nombre_completo);
@@ -190,7 +191,7 @@ export class PerfilHabilidadesComponent implements OnInit {
   guardarPerfilYHabilidad(): void {
     const volId = this.authService.usuarioActual()?.voluntario_id || 1;
     this.http
-      .post<{ mensaje_humano: string }>('http://localhost:5000/api/voluntariado/perfil-habilidades', {
+      .post<{ mensaje_humano: string }>(`${getApiBaseUrl()}/voluntariado/perfil-habilidades`, {
         ...this.form,
         voluntario_id: volId,
       })
@@ -208,7 +209,7 @@ export class PerfilHabilidadesComponent implements OnInit {
   }
 
   eliminarHabilidad(registroId: number): void {
-    this.http.delete<{ mensaje_humano: string }>(`http://localhost:5000/api/voluntariado/perfil-habilidades/${registroId}`).subscribe({
+    this.http.delete<{ mensaje_humano: string }>(`${getApiBaseUrl()}/voluntariado/perfil-habilidades/${registroId}`).subscribe({
       next: (res) => {
         this.mensajeHumano.set(res.mensaje_humano);
         this.cargarPerfil();

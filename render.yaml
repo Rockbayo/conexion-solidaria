@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: conexion-solidaria
+    runtime: python
+    plan: free
+    buildCommand: ./build.sh
+    startCommand: cd backend && gunicorn run:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: NODE_VERSION
+        value: 22.14.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+

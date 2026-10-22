@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { OfflineSyncService, CatalogosGenerales } from '../../core/services/offline-sync.service';
+import { getApiBaseUrl } from '../../core/config/api.config';
 
 interface BorradorOsalWizard {
   nit: string;
@@ -475,7 +476,7 @@ export class RegistroOsalWizardComponent implements OnInit {
       ],
     };
 
-    this.http.post<{ mensaje_humano: string }>('http://localhost:5000/api/osal/registro', payload).subscribe({
+    this.http.post<{ mensaje_humano: string }>(`${getApiBaseUrl()}/osal/registro`, payload).subscribe({
       next: (res) => {
         this.enviando.set(false);
         this.offlineSync.limpiarBorradorFormulario(this.DRAFT_KEY);

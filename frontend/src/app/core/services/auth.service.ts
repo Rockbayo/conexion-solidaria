@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
+import { getApiBaseUrl } from '../config/api.config';
 
 export interface UsuarioSesion {
   id: number;
@@ -27,7 +28,9 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly apiUrl = 'http://localhost:5000/api/auth';
+  private get apiUrl(): string {
+    return `${getApiBaseUrl()}/auth`;
+  }
 
   private readonly STORAGE_TOKEN_KEY = 'cs_jwt_token';
   private readonly STORAGE_USER_KEY = 'cs_user_session';

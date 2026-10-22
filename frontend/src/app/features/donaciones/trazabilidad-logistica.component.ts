@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { getApiBaseUrl } from '../../core/config/api.config';
 
 interface DonacionEspecieItem {
   id: number;
@@ -154,7 +155,7 @@ export class TrazabilidadLogisticaComponent implements OnInit {
   }
 
   cargarDonacionesEspecie(): void {
-    this.http.get<{ donaciones: DonacionEspecieItem[] }>('http://localhost:5000/api/donaciones').subscribe({
+    this.http.get<{ donaciones: DonacionEspecieItem[] }>(`${getApiBaseUrl()}/donaciones`).subscribe({
       next: (res) => {
         const soloEspecie = (res.donaciones || []).filter((d) => !!d.especie);
         this.itemsEspecie.set(soloEspecie);
@@ -174,7 +175,7 @@ export class TrazabilidadLogisticaComponent implements OnInit {
 
     this.http
       .put<{ mensaje_humano: string }>(
-        `http://localhost:5000/api/donaciones/especie/${donacionEspecieId}/trazabilidad`,
+        `${getApiBaseUrl()}/donaciones/especie/${donacionEspecieId}/trazabilidad`,
         {
           estado_logistico: nuevoEstado,
           ubicacion_reportada: ubicacion,
