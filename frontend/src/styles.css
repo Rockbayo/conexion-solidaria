@@ -1,25 +1,27 @@
-/* ==========================================================================
-   CONEXIÓN SOLIDARIA - SISTEMA DE DISEÑO RURAL ACCESIBLE (WCAG 2.2 AAA/AA)
-   Alto contraste, lectura relajada, tarjetas limpias y cero saturación.
-   ========================================================================== */
-
 :root {
-  --bg-page: #F9FAF7;
-  --bg-card: #FFFFFF;
-  --text-primary: #111827;
-  --text-secondary: #374151;
-  --brand-primary: #14532D;      /* Verde Sabana profundo - Contraste > 8.5:1 sobre blanco */
-  --brand-primary-hover: #064E3B;
-  --brand-accent: #B45309;       /* Ocre rural accesible */
-  --border-strong: #1F2937;
-  --border-subtle: #D1D5DB;
-  --status-ok-bg: #DCFCE7;
-  --status-ok-text: #14532D;
-  --status-warn-bg: #FEF3C7;
-  --status-warn-text: #78350F;
-  --status-err-bg: #FEE2E2;
-  --status-err-text: #7F1D1D;
-  --focus-ring: #1D4ED8;
+  --sap-shell-bg: #1D2D3E;
+  --sap-shell-text: #FFFFFF;
+  --sap-bg-canvas: #F5F6F7;
+  --sap-bg-surface: #FFFFFF;
+  --sap-bg-subtle: #EDF0F2;
+  --sap-text-primary: #131E29;
+  --sap-text-secondary: #475569;
+  --sap-brand-primary: #0057D2;
+  --sap-brand-hover: #00409C;
+  --sap-accent-rural: #106333;
+  --sap-border-strong: #5B738B;
+  --sap-border-subtle: #D5DADD;
+  --sap-status-ok-bg: #EBF5ED;
+  --sap-status-ok-text: #106333;
+  --sap-status-ok-border: #256F3A;
+  --sap-status-warn-bg: #FFF8E6;
+  --sap-status-warn-text: #7A4100;
+  --sap-status-warn-border: #E76500;
+  --sap-status-err-bg: #FFEBEB;
+  --sap-status-err-text: #A61C1C;
+  --sap-status-err-border: #AA0808;
+  --sap-focus-ring: #0057D2;
+  --sap-shadow-card: 0 1px 4px rgba(19, 30, 41, 0.12), 0 0 1px rgba(19, 30, 41, 0.18);
 }
 
 * {
@@ -28,53 +30,181 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--bg-page);
-  color: var(--text-primary);
-  line-height: 1.6;
-  font-size: 16px;
+  font-family: '72', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--sap-bg-canvas);
+  color: var(--sap-text-primary);
+  line-height: 1.5;
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Foco altamente visible según WCAG 2.2 (2.4.11 Focus Appearance) */
 :focus-visible {
-  outline: 3px solid var(--focus-ring);
+  outline: 2px solid var(--sap-focus-ring);
   outline-offset: 2px;
 }
 
 .cs-card {
-  background: var(--bg-card);
-  border: 2px solid var(--border-subtle);
-  border-radius: 12px;
+  background: var(--sap-bg-surface);
+  border: 1px solid var(--sap-border-subtle);
+  border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--sap-shadow-card);
+}
+
+.sap-page-header {
+  background: var(--sap-bg-surface);
+  border-bottom: 1px solid var(--sap-border-subtle);
+  padding: 1.25rem 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.sap-page-header-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.sap-breadcrumb {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sap-brand-primary);
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.sap-page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--sap-text-primary);
+}
+
+.sap-page-subtitle {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.92rem;
+  color: var(--sap-text-secondary);
+}
+
+.sap-container {
+  max-width: 1240px;
+  margin: 0 auto 2.5rem auto;
+  padding: 0 2rem;
 }
 
 .cs-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 48px; /* Tamaño táctil accesible WCAG 2.2 (Target Size) */
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
+  min-height: 44px;
+  padding: 0.55rem 1.25rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  border-radius: 8px;
-  border: 2px solid transparent;
+  border-radius: 6px;
+  border: 1px solid var(--sap-brand-primary);
   cursor: pointer;
-  background-color: var(--brand-primary);
+  background-color: var(--sap-brand-primary);
   color: #FFFFFF;
   text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .cs-btn:hover {
-  background-color: var(--brand-primary-hover);
+  background-color: var(--sap-brand-hover);
+  border-color: var(--sap-brand-hover);
+}
+
+.cs-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.sap-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.55rem 1.15rem;
+  font-size: 0.92rem;
+  font-weight: 700;
+  border-radius: 6px;
+  border: 1px solid var(--sap-border-strong);
+  background-color: var(--sap-bg-surface);
+  color: var(--sap-text-primary);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.sap-btn-secondary:hover {
+  background-color: var(--sap-bg-subtle);
 }
 
 .cs-alert-human {
-  border-left: 6px solid var(--brand-accent);
-  background-color: var(--status-warn-bg);
-  color: var(--status-warn-text);
-  padding: 1rem 1.25rem;
-  border-radius: 8px;
+  border-left: 4px solid var(--sap-status-warn-border);
+  border-top: 1px solid var(--sap-status-warn-border);
+  border-right: 1px solid var(--sap-status-warn-border);
+  border-bottom: 1px solid var(--sap-status-warn-border);
+  background-color: var(--sap-status-warn-bg);
+  color: var(--sap-status-warn-text);
+  padding: 0.9rem 1.2rem;
+  border-radius: 6px;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.sap-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.sap-badge-ok {
+  background-color: var(--sap-status-ok-bg);
+  color: var(--sap-status-ok-text);
+  border-color: var(--sap-status-ok-border);
+}
+
+.sap-badge-warn {
+  background-color: var(--sap-status-warn-bg);
+  color: var(--sap-status-warn-text);
+  border-color: var(--sap-status-warn-border);
+}
+
+.sap-badge-info {
+  background-color: #E8F1FF;
+  color: var(--sap-brand-primary);
+  border-color: #93C5FD;
+}
+
+.sap-form-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--sap-text-primary);
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.sap-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.55rem 0.85rem;
+  font-size: 0.95rem;
+  border: 1px solid var(--sap-border-strong);
+  border-radius: 4px;
+  background-color: var(--sap-bg-surface);
+  color: var(--sap-text-primary);
+}
+
+.sap-input:focus {
+  border-color: var(--sap-brand-primary);
 }

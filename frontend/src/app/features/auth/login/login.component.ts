@@ -9,13 +9,22 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <main class="login-wrapper" aria-labelledby="login-heading">
-      <section class="cs-card login-card">
-        <div class="brand-badge">Sabana Norte de Cundinamarca</div>
-        <h1 id="login-heading">Ingreso a Conexión Solidaria</h1>
-        <p class="subtitle">
-          Plataforma de apoyo comunitario para fundaciones rurales, donantes y voluntarios.
-        </p>
+    <div class="sap-page-header">
+      <div class="sap-page-header-inner">
+        <div>
+          <span class="sap-breadcrumb">Seguridad y Control de Acceso</span>
+          <h1 class="sap-page-title">Portal de Autenticación Institucional</h1>
+          <p class="sap-page-subtitle">Acceso unificado para fundaciones rurales, donantes y voluntarios de la Sabana Norte.</p>
+        </div>
+      </div>
+    </div>
+
+    <main class="sap-container login-layout" aria-labelledby="login-heading">
+      <section class="cs-card login-panel">
+        <div class="panel-header">
+          <h2 id="login-heading">Credenciales de Usuario</h2>
+          <span class="sap-badge sap-badge-info">Sesión Cifrada JWT</span>
+        </div>
 
         @if (mensajeConexionInestable()) {
           <div class="cs-alert-human" role="alert">
@@ -31,50 +40,52 @@ import { AuthService } from '../../../core/services/auth.service';
 
         <form (ngSubmit)="procesarLogin()" class="login-form" novalidate>
           <div class="form-group">
-            <label for="correo">Correo electrónico registrado</label>
+            <label for="correo" class="sap-form-label">Correo electrónico corporativo o personal</label>
             <input
               id="correo"
               name="correo"
               type="email"
+              class="sap-input"
               [(ngModel)]="correoElectronico"
-              placeholder="ejemplo: osal@sabananorte.org"
+              placeholder="usuario@organizacion.org"
               required
               autocomplete="email"
             />
           </div>
 
           <div class="form-group">
-            <label for="contrasena">Contraseña de acceso</label>
+            <label for="contrasena" class="sap-form-label">Clave de seguridad</label>
             <input
               id="contrasena"
               name="contrasena"
               type="password"
+              class="sap-input"
               [(ngModel)]="contrasena"
-              placeholder="Escribe tu contraseña segura"
+              placeholder="••••••••••••"
               required
               autocomplete="current-password"
             />
           </div>
 
           <button type="submit" class="cs-btn btn-block" [disabled]="cargando()">
-            {{ cargando() ? 'Verificando tus datos...' : 'Entrar a la Plataforma' }}
+            {{ cargando() ? 'Validando credenciales...' : 'Iniciar Sesión' }}
           </button>
         </form>
 
-        <hr class="divider" />
-
-        <div class="demo-accounts" aria-label="Cuentas demostrativas para pruebas rápidas">
-          <h2>Acceso Rápido Demostrativo (Sabana Norte)</h2>
-          <p class="helper-text">Selecciona un perfil para autocompletar credenciales de prueba:</p>
-          <div class="demo-buttons">
-            <button type="button" class="btn-outline" (click)="cargarDemo('osal@sabananorte.org')">
-              Perfil OSAL (Cogua)
+        <div class="quick-profiles" aria-label="Perfiles preconfigurados del entorno">
+          <div class="quick-header">
+            <h3>Selección Rápida de Rol Operativo</h3>
+            <p>Carga automática de perfiles de verificación para la Sabana Norte:</p>
+          </div>
+          <div class="profile-grid">
+            <button type="button" class="sap-btn-secondary" (click)="cargarDemo('osal@sabananorte.org')">
+              Representante OSAL · Cogua
             </button>
-            <button type="button" class="btn-outline" (click)="cargarDemo('donante@conexion.org')">
-              Perfil Donante (Tabio)
+            <button type="button" class="sap-btn-secondary" (click)="cargarDemo('donante@conexion.org')">
+              Donante · Tabio
             </button>
-            <button type="button" class="btn-outline" (click)="cargarDemo('voluntario@conexion.org')">
-              Perfil Voluntario
+            <button type="button" class="sap-btn-secondary" (click)="cargarDemo('voluntario@conexion.org')">
+              Voluntario Rural
             </button>
           </div>
         </div>
@@ -82,101 +93,65 @@ import { AuthService } from '../../../core/services/auth.service';
     </main>
   `,
   styles: [`
-    .login-wrapper {
-      min-height: calc(100vh - 80px);
+    .login-layout {
       display: flex;
-      align-items: center;
       justify-content: center;
-      padding: 1.5rem;
+      padding-top: 1rem;
     }
-    .login-card {
+    .login-panel {
       width: 100%;
-      max-width: 500px;
-      border-width: 2px;
-      border-color: var(--border-strong);
+      max-width: 520px;
+      border-top: 4px solid var(--sap-brand-primary);
     }
-    .brand-badge {
-      display: inline-block;
-      background-color: var(--status-ok-bg);
-      color: var(--status-ok-text);
-      font-weight: 700;
-      padding: 0.25rem 0.75rem;
-      border-radius: 999px;
-      font-size: 0.875rem;
-      margin-bottom: 0.75rem;
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1rem;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--sap-border-subtle);
     }
-    h1 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.75rem;
-      color: var(--text-primary);
-    }
-    .subtitle {
-      margin: 0 0 1.5rem 0;
-      color: var(--text-secondary);
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1.15rem;
     }
     .form-group {
-      margin-bottom: 1.25rem;
-      display: flex;
-      flex-direction: column;
-    }
-    label {
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      color: var(--text-primary);
-    }
-    input {
-      min-height: 48px;
-      padding: 0.75rem 1rem;
-      font-size: 1rem;
-      border: 2px solid var(--border-strong);
-      border-radius: 8px;
-      background-color: #FFFFFF;
-      color: var(--text-primary);
+      margin-bottom: 1.15rem;
     }
     .btn-block {
       width: 100%;
-      margin-top: 0.5rem;
+      margin-top: 0.4rem;
     }
     .alert-error {
-      border-left: 6px solid var(--status-err-text);
-      background-color: var(--status-err-bg);
-      color: var(--status-err-text);
-      padding: 1rem;
-      border-radius: 8px;
+      border-left: 4px solid var(--sap-status-err-border);
+      border-top: 1px solid var(--sap-status-err-border);
+      border-right: 1px solid var(--sap-status-err-border);
+      border-bottom: 1px solid var(--sap-status-err-border);
+      background-color: var(--sap-status-err-bg);
+      color: var(--sap-status-err-text);
+      padding: 0.85rem 1rem;
+      border-radius: 6px;
       font-weight: 600;
-      margin-bottom: 1.25rem;
+      margin-bottom: 1.15rem;
     }
-    .divider {
-      margin: 1.75rem 0;
-      border: 0;
-      border-top: 2px solid var(--border-subtle);
+    .quick-profiles {
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--sap-border-subtle);
     }
-    .demo-accounts h2 {
-      font-size: 1.1rem;
-      margin: 0 0 0.25rem 0;
+    .quick-header h3 {
+      margin: 0 0 0.2rem 0;
+      font-size: 0.95rem;
     }
-    .helper-text {
-      font-size: 0.9rem;
-      color: var(--text-secondary);
-      margin: 0 0 0.75rem 0;
+    .quick-header p {
+      margin: 0 0 0.85rem 0;
+      font-size: 0.85rem;
+      color: var(--sap-text-secondary);
     }
-    .demo-buttons {
+    .profile-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 0.5rem;
-    }
-    .btn-outline {
-      min-height: 44px;
-      padding: 0.5rem;
-      font-weight: 700;
-      background: #FFFFFF;
-      color: var(--brand-primary);
-      border: 2px solid var(--brand-primary);
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .btn-outline:hover {
-      background: var(--status-ok-bg);
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 0.6rem;
     }
   `]
 })
@@ -234,4 +209,3 @@ export class LoginComponent {
     });
   }
 }
-

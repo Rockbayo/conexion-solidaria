@@ -38,67 +38,81 @@ interface DashboardMetricas {
   standalone: true,
   imports: [CommonModule, RouterLink],
   template: `
-    <main class="container" aria-labelledby="cu08-heading">
-      <header class="cs-card header-banner">
+    <div class="sap-page-header">
+      <div class="sap-page-header-inner">
         <div>
-          <span class="tag-pill">CU08 · Dashboard Operativo de la OSAL (5FN)</span>
-          <h1 id="cu08-heading">Tablero de Impacto y Métricas en Sabana Norte</h1>
-          <p>
-            Consolidado en tiempo real de recaudo económico, voluntarios comprometidos, horas comunitarias y campañas activas.
-          </p>
+          <span class="sap-breadcrumb">Analítica e Inteligencia Operativa</span>
+          <h1 class="sap-page-title">Tablero de Control e Indicadores de Gestión</h1>
+          <p class="sap-page-subtitle">Consolidado financiero, ejecución presupuestal de campañas, voluntariado y cadena de suministro rural.</p>
         </div>
-        <a routerLink="/campanas" class="cs-btn">+ Crear Campaña (CU03)</a>
-      </header>
+        <a routerLink="/campanas" class="cs-btn">Nueva Campaña</a>
+      </div>
+    </div>
 
+    <main class="sap-container">
       @if (datos(); as d) {
-        <!-- TARJETAS DE INDICADORES CLAVE (KPI CARDS) -->
-        <section class="kpi-grid" aria-label="Indicadores principales de la fundación">
+        <section class="kpi-grid" aria-label="Indicadores ejecutivos de gestión">
           <article class="cs-card kpi-card">
-            <span class="kpi-label">Recaudo Total Verificado</span>
-            <strong class="kpi-value">\${{ d.kpis.recaudo_total_cop | number:'1.0-0' }} COP</strong>
-            <span class="kpi-sub">Meta Global: \${{ d.kpis.meta_global_cop | number:'1.0-0' }} ({{ d.kpis.porcentaje_global }}%)</span>
+            <div class="kpi-top">
+              <span class="kpi-label">Ejecución de Recaudo Monetario</span>
+              <span class="sap-badge sap-badge-info">COP</span>
+            </div>
+            <strong class="kpi-value">\${{ d.kpis.recaudo_total_cop | number:'1.0-0' }}</strong>
+            <span class="kpi-sub">Presupuesto Meta: \${{ d.kpis.meta_global_cop | number:'1.0-0' }} ({{ d.kpis.porcentaje_global }}%)</span>
           </article>
 
           <article class="cs-card kpi-card">
-            <span class="kpi-label">Voluntarios y Tiempo Solidario</span>
-            <strong class="kpi-value">{{ d.kpis.voluntarios_activos }} Voluntarios</strong>
-            <span class="kpi-sub">{{ d.kpis.horas_voluntariado_comprometidas }} horas comprometidas ({{ d.kpis.postulaciones_voluntariado }} postulaciones)</span>
+            <div class="kpi-top">
+              <span class="kpi-label">Capacidad de Voluntariado</span>
+              <span class="sap-badge sap-badge-ok">Activo</span>
+            </div>
+            <strong class="kpi-value">{{ d.kpis.horas_voluntariado_comprometidas }} Horas</strong>
+            <span class="kpi-sub">{{ d.kpis.voluntarios_activos }} voluntarios · {{ d.kpis.postulaciones_voluntariado }} asignaciones</span>
           </article>
 
           <article class="cs-card kpi-card">
-            <span class="kpi-label">Campañas y OSAL en Sabana Norte</span>
-            <strong class="kpi-value">{{ d.kpis.campanas_activas }} Campañas Activas</strong>
-            <span class="kpi-sub">{{ d.kpis.fundaciones_registradas }} fundaciones OSAL vinculadas</span>
+            <div class="kpi-top">
+              <span class="kpi-label">Cobertura Institucional</span>
+              <span class="sap-badge sap-badge-info">Sabana Norte</span>
+            </div>
+            <strong class="kpi-value">{{ d.kpis.campanas_activas }} Programas</strong>
+            <span class="kpi-sub">{{ d.kpis.fundaciones_registradas }} organizaciones OSAL registradas</span>
           </article>
 
           <article class="cs-card kpi-card">
-            <span class="kpi-label">Trazabilidad de Donaciones en Especie</span>
-            <strong class="kpi-value">{{ d.kpis.donaciones_especie_totales }} Entregas</strong>
+            <div class="kpi-top">
+              <span class="kpi-label">Operaciones en Especie</span>
+              <span class="sap-badge sap-badge-ok">Logística</span>
+            </div>
+            <strong class="kpi-value">{{ d.kpis.donaciones_especie_totales }} Despachos</strong>
             <span class="kpi-sub">
               Recibidos: {{ d.logistica_especie.recibido }} · Bodega: {{ d.logistica_especie.en_bodega }} · Entregados: {{ d.logistica_especie.entregado }}
             </span>
           </article>
         </section>
 
-        <!-- DESEMPEÑO POR CAMPAÑA -->
-        <section class="cs-card table-card" aria-label="Desempeño detallado por campaña">
-          <h2>Avance Financiero y Operativo por Campaña</h2>
+        <section class="cs-card table-card" aria-label="Estado de ejecución por programa">
+          <div class="table-head">
+            <h2>Detalle de Ejecución Presupuestal por Campaña</h2>
+            <span class="sap-badge sap-badge-info">{{ d.campanas_desempeno.length }} Registros</span>
+          </div>
+
           <div class="campaign-rows">
             @for (c of d.campanas_desempeno; track c.id) {
               <article class="camp-row">
                 <div class="camp-row-head">
                   <div>
                     <h3>{{ c.titulo }}</h3>
-                    <p>{{ c.fundacion }} · 📍 {{ c.municipio }} · {{ c.total_necesidades }} necesidades registradas</p>
+                    <p>{{ c.fundacion }} · Jurisdicción: {{ c.municipio }} · {{ c.total_necesidades }} requerimientos</p>
                   </div>
-                  <span class="pct-chip">{{ c.porcentaje_avance }}% completado</span>
+                  <span class="sap-badge sap-badge-ok">{{ c.porcentaje_avance }}% Ejecutado</span>
                 </div>
                 <div class="bar-bg">
                   <div class="bar-fill" [style.width.%]="c.porcentaje_avance"></div>
                 </div>
                 <div class="camp-row-foot">
-                  <span>Recaudado: <strong>\${{ c.monto_recaudado | number:'1.0-0' }} COP</strong></span>
-                  <span>Meta: \${{ c.meta_economica | number:'1.0-0' }} COP</span>
+                  <span>Recaudo Verificado: <strong>\${{ c.monto_recaudado | number:'1.0-0' }} COP</strong></span>
+                  <span>Meta Presupuestal: \${{ c.meta_economica | number:'1.0-0' }} COP</span>
                 </div>
               </article>
             }
@@ -108,26 +122,23 @@ interface DashboardMetricas {
     </main>
   `,
   styles: [`
-    .container { max-width: 1080px; margin: 2rem auto; padding: 0 1.5rem; }
-    .header-banner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; border-color: var(--brand-primary); }
-    .header-banner h1 { margin: 0.4rem 0; font-size: 1.75rem; }
-    .tag-pill { display: inline-block; background: var(--status-ok-bg); color: var(--status-ok-text); font-weight: 800; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.85rem; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem; }
-    .kpi-card { display: flex; flex-direction: column; gap: 0.35rem; border-color: var(--border-strong); }
-    .kpi-label { font-size: 0.9rem; font-weight: 700; color: var(--text-secondary); }
-    .kpi-value { font-size: 1.65rem; font-weight: 900; color: var(--brand-primary); }
-    .kpi-sub { font-size: 0.85rem; color: var(--text-secondary); }
-    .table-card { border-color: var(--border-strong); }
-    .table-card h2 { margin-top: 0; }
-    .campaign-rows { display: flex; flex-direction: column; gap: 1rem; }
-    .camp-row { padding: 1rem; border: 2px solid var(--border-subtle); border-radius: 10px; background: #F9FAF7; }
-    .camp-row-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-    .camp-row-head h3 { margin: 0; font-size: 1.1rem; }
-    .camp-row-head p { margin: 0.2rem 0 0 0; font-size: 0.88rem; color: var(--text-secondary); }
-    .pct-chip { background: var(--status-ok-bg); color: var(--status-ok-text); font-weight: 800; padding: 0.25rem 0.65rem; border-radius: 999px; font-size: 0.85rem; }
-    .bar-bg { height: 12px; background: #E5E7EB; border-radius: 999px; overflow: hidden; border: 1px solid var(--border-strong); margin-bottom: 0.5rem; }
-    .bar-fill { height: 100%; background: var(--brand-primary); }
-    .camp-row-foot { display: flex; justify-content: space-between; font-size: 0.9rem; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem; }
+    .kpi-card { display: flex; flex-direction: column; gap: 0.45rem; border-top: 3px solid var(--sap-brand-primary); }
+    .kpi-top { display: flex; justify-content: space-between; align-items: center; }
+    .kpi-label { font-size: 0.84rem; font-weight: 700; color: var(--sap-text-secondary); }
+    .kpi-value { font-size: 1.6rem; font-weight: 800; color: var(--sap-text-primary); }
+    .kpi-sub { font-size: 0.82rem; color: var(--sap-text-secondary); }
+    .table-card { border-top: 3px solid var(--sap-brand-primary); }
+    .table-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.85rem; margin-bottom: 1.15rem; border-bottom: 1px solid var(--sap-border-subtle); }
+    .table-head h2 { margin: 0; font-size: 1.12rem; }
+    .campaign-rows { display: flex; flex-direction: column; gap: 0.9rem; }
+    .camp-row { padding: 1rem; border: 1px solid var(--sap-border-subtle); border-radius: 6px; background: var(--sap-bg-canvas); }
+    .camp-row-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
+    .camp-row-head h3 { margin: 0; font-size: 1.02rem; }
+    .camp-row-head p { margin: 0.2rem 0 0 0; font-size: 0.84rem; color: var(--sap-text-secondary); }
+    .bar-bg { height: 8px; background: #CBD5E1; border-radius: 999px; overflow: hidden; margin-bottom: 0.5rem; }
+    .bar-fill { height: 100%; background: var(--sap-brand-primary); }
+    .camp-row-foot { display: flex; justify-content: space-between; font-size: 0.86rem; }
   `]
 })
 export class DashboardOsalComponent implements OnInit {
@@ -169,4 +180,3 @@ export class DashboardOsalComponent implements OnInit {
     });
   }
 }
-

@@ -37,35 +37,38 @@ interface PostulacionItem {
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
-    <main class="container" aria-labelledby="cu05-heading">
-      <header class="cs-card header-banner">
+    <div class="sap-page-header">
+      <div class="sap-page-header-inner">
         <div>
-          <span class="tag-pill">CU05 · Postulación y Asignación de Voluntariado 5FN</span>
-          <h1 id="cu05-heading">Postulación a Labores Comunitarias en Sabana Norte</h1>
-          <p>
-            Elige una labor rural activa, propón tu horario de apoyo y recibe tu asignación inmediata de actividades.
-          </p>
+          <span class="sap-breadcrumb">Capital Humano y Trabajo Comunitario</span>
+          <h1 class="sap-page-title">Gestión de Postulaciones y Asignación de Voluntariado</h1>
+          <p class="sap-page-subtitle">Inscripción en actividades operativas rurales y seguimiento de órdenes de dedicación horaria.</p>
         </div>
-        <a routerLink="/perfil-habilidades" class="cs-btn">
-          Gestionar mis Habilidades (CU10)
+        <a routerLink="/perfil-habilidades" class="sap-btn-secondary">
+          Configurar Matriz de Competencias
         </a>
-      </header>
+      </div>
+    </div>
 
+    <main class="sap-container">
       @if (mensajeHumano()) {
         <div class="cs-alert-human" role="status">{{ mensajeHumano() }}</div>
       }
 
       <div class="layout-grid">
-        <!-- FORMULARIO DE POSTULACIÓN CU05 -->
-        <section class="cs-card" aria-label="Formulario de postulación a voluntariado">
-          <h2>Postularme a una Labor Específica</h2>
+        <section class="cs-card sap-panel" aria-label="Formulario de postulación a voluntariado">
+          <div class="panel-head">
+            <h2>Formulario de Inscripción en Labor</h2>
+            <span class="sap-badge sap-badge-info">Asignación Automática</span>
+          </div>
+
           <form (ngSubmit)="enviarPostulacion()" novalidate>
             <div class="form-group">
-              <label for="labor_sel">1. Selecciona la Labor Comunitaria *</label>
-              <select id="labor_sel" name="labor_sel" [(ngModel)]="form.necesidad_campana_id" (ngModelChange)="guardarBorrador()">
+              <label for="labor_sel" class="sap-form-label">Actividad Comunitaria Requerida *</label>
+              <select id="labor_sel" name="labor_sel" class="sap-input" [(ngModel)]="form.necesidad_campana_id" (ngModelChange)="guardarBorrador()">
                 @for (l of labores(); track l.necesidad_id) {
                   <option [ngValue]="l.necesidad_id">
-                    [{{ l.municipio }}] {{ l.descripcion_item }} — {{ l.fundacion_nombre }}
+                    {{ l.municipio }} · {{ l.descripcion_item }} ({{ l.fundacion_nombre }})
                   </option>
                 }
               </select>
@@ -73,46 +76,49 @@ interface PostulacionItem {
 
             <div class="grid-2">
               <div class="form-group">
-                <label for="disp">2. Disponibilidad de Horario *</label>
-                <input id="disp" name="disp" type="text" [(ngModel)]="form.disponibilidad_propuesta" (ngModelChange)="guardarBorrador()" placeholder="Ej: Sábados de 7:00 am a 1:00 pm" required />
+                <label for="disp" class="sap-form-label">Franja Horaria Propuesta *</label>
+                <input id="disp" name="disp" type="text" class="sap-input" [(ngModel)]="form.disponibilidad_propuesta" (ngModelChange)="guardarBorrador()" placeholder="Ej: Sábados de 7:00 am a 1:00 pm" required />
               </div>
               <div class="form-group">
-                <label for="horas">3. Horas a Comprometer *</label>
-                <input id="horas" name="horas" type="number" min="2" max="80" [(ngModel)]="form.horas_comprometidas" (ngModelChange)="guardarBorrador()" required />
+                <label for="horas" class="sap-form-label">Horas a Comprometer *</label>
+                <input id="horas" name="horas" type="number" min="2" max="80" class="sap-input" [(ngModel)]="form.horas_comprometidas" (ngModelChange)="guardarBorrador()" required />
               </div>
             </div>
 
             <div class="form-group">
-              <label for="motiv">4. ¿Cómo puedes aportar en esta jornada rural? *</label>
-              <textarea id="motiv" name="motiv" rows="3" [(ngModel)]="form.motivacion" (ngModelChange)="guardarBorrador()" placeholder="Cuéntale a la fundación tu experiencia y motivación..." required></textarea>
+              <label for="motiv" class="sap-form-label">Perfil de Aporte y Experiencia *</label>
+              <textarea id="motiv" name="motiv" rows="3" class="sap-input" [(ngModel)]="form.motivacion" (ngModelChange)="guardarBorrador()" placeholder="Describe tu experiencia técnica o comunitaria para esta jornada..." required></textarea>
             </div>
 
             <button type="submit" class="cs-btn btn-full" [disabled]="enviando()">
-              {{ enviando() ? 'Enviando postulación...' : 'Confirmar Postulación Solidaria' }}
+              {{ enviando() ? 'Procesando solicitud...' : 'Confirmar Postulación' }}
             </button>
           </form>
         </section>
 
-        <!-- LISTADO DE POSTULACIONES Y ASIGNACIONES -->
-        <section class="cs-card" aria-label="Mis postulaciones y actividades asignadas">
-          <h2>Mis Postulaciones y Actividades Asignadas</h2>
+        <section class="cs-card sap-panel" aria-label="Órdenes de voluntariado registradas">
+          <div class="panel-head">
+            <h2>Órdenes de Actividad y Asignaciones</h2>
+            <span class="sap-badge sap-badge-ok">Vigentes</span>
+          </div>
+
           @if (postulaciones().length === 0) {
-            <p>Aún no tienes postulaciones activas. Selecciona una labor en el formulario para empezar.</p>
+            <p class="empty-note">No se registran postulaciones activas. Selecciona una actividad comunitaria en el panel izquierdo.</p>
           } @else {
             <div class="post-list">
               @for (p of postulaciones(); track p.id) {
                 <article class="post-card">
                   <div class="post-top">
-                    <span class="status-chip">{{ p.estado_postulacion }}</span>
                     <strong>{{ p.voluntario_nombre }}</strong>
+                    <span class="sap-badge sap-badge-ok">{{ p.estado_postulacion }}</span>
                   </div>
                   <h3>{{ p.labor_descripcion }}</h3>
-                  <p class="small"><strong>Disponibilidad:</strong> {{ p.disponibilidad_propuesta }}</p>
-                  <p class="small"><strong>Motivación:</strong> {{ p.motivacion }}</p>
+                  <p class="small"><strong>Franja horaria:</strong> {{ p.disponibilidad_propuesta }}</p>
+                  <p class="small"><strong>Justificación:</strong> {{ p.motivacion }}</p>
                   @if (p.asignacion) {
                     <div class="assign-box">
-                      <strong>Asignación (asignaciones_actividades):</strong>
-                      <span>{{ p.asignacion.tarea_especifica }} ({{ p.asignacion.horas_comprometidas }} horas · {{ p.asignacion.estado_actividad }})</span>
+                      <span><strong>Tarea Asignada:</strong> {{ p.asignacion.tarea_especifica }}</span>
+                      <span><strong>Dedicación:</strong> {{ p.asignacion.horas_comprometidas }} horas · Estado: {{ p.asignacion.estado_actividad }}</span>
                     </div>
                   }
                 </article>
@@ -124,23 +130,19 @@ interface PostulacionItem {
     </main>
   `,
   styles: [`
-    .container { max-width: 1080px; margin: 2rem auto; padding: 0 1.5rem; }
-    .header-banner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; border-color: var(--brand-primary); }
-    .header-banner h1 { margin: 0.4rem 0; font-size: 1.75rem; }
-    .tag-pill { display: inline-block; background: var(--status-ok-bg); color: var(--status-ok-text); font-weight: 800; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.85rem; }
-    .layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; align-items: start; }
-    .form-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.85rem; }
-    label { font-weight: 700; margin-bottom: 0.35rem; }
-    input, select, textarea { min-height: 48px; padding: 0.65rem 0.85rem; font-size: 1rem; border: 2px solid var(--border-strong); border-radius: 8px; }
+    .layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem; align-items: start; }
+    .sap-panel { border-top: 3px solid var(--sap-brand-primary); }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.85rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--sap-border-subtle); }
+    .panel-head h2 { margin: 0; font-size: 1.12rem; }
+    .form-group { margin-bottom: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.9rem; }
     .btn-full { width: 100%; }
-    .post-list { display: flex; flex-direction: column; gap: 1rem; }
-    .post-card { border: 2px solid var(--border-subtle); border-radius: 10px; padding: 1rem; background: #F9FAF7; }
+    .post-list { display: flex; flex-direction: column; gap: 0.9rem; }
+    .post-card { border: 1px solid var(--sap-border-subtle); border-radius: 6px; padding: 1rem; background: var(--sap-bg-canvas); }
     .post-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
-    .status-chip { background: var(--status-ok-bg); color: var(--status-ok-text); font-weight: 800; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.8rem; }
-    .post-card h3 { margin: 0.2rem 0 0.5rem 0; font-size: 1.1rem; }
-    .small { margin: 0.25rem 0; font-size: 0.9rem; color: var(--text-secondary); }
-    .assign-box { margin-top: 0.65rem; padding: 0.6rem; background: #FFFFFF; border-left: 4px solid var(--brand-primary); border-radius: 6px; display: flex; flex-direction: column; font-size: 0.88rem; }
+    .post-card h3 { margin: 0.2rem 0 0.5rem 0; font-size: 1rem; }
+    .small { margin: 0.25rem 0; font-size: 0.88rem; color: var(--sap-text-secondary); }
+    .assign-box { margin-top: 0.65rem; padding: 0.6rem 0.75rem; background: #FFFFFF; border-left: 3px solid var(--sap-brand-primary); border-radius: 4px; display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; }
   `]
 })
 export class PostulacionVoluntariadoComponent implements OnInit {
@@ -216,4 +218,3 @@ export class PostulacionVoluntariadoComponent implements OnInit {
     });
   }
 }
-

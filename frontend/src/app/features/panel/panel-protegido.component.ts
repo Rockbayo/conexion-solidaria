@@ -8,129 +8,159 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <main class="panel-container">
-      @if (avisoRestringido()) {
-        <div class="cs-alert-human" role="alert">
-          Esta sección requiere un rol específico de fundación o voluntariado. Te hemos traído a tu panel principal seguro.
-        </div>
-      }
-
-      @if (authService.usuarioActual(); as usuario) {
-        <header class="cs-card welcome-banner">
+    @if (authService.usuarioActual(); as usuario) {
+      <div class="sap-page-header">
+        <div class="sap-page-header-inner">
           <div>
-            <span class="role-chip">Rol activo: {{ usuario.roles.join(', ') }}</span>
-            <h1>Hola, {{ usuario.nombre_mostrar }}</h1>
-            <p>Has ingresado con sesión cifrada JWT a Conexión Solidaria (Sabana Norte de Cundinamarca).</p>
+            <span class="sap-breadcrumb">Administración de Cuenta y Seguridad</span>
+            <h1 class="sap-page-title">{{ usuario.nombre_mostrar }}</h1>
+            <p class="sap-page-subtitle">Rol asignado: {{ usuario.roles.join(' · ') }} — Sabana Norte de Cundinamarca</p>
           </div>
-          <button type="button" class="btn-logout" (click)="authService.cerrarSesion()">
-            Cerrar sesión segura
+          <button type="button" class="sap-btn-secondary btn-logout" (click)="authService.cerrarSesion()">
+            Finalizar Sesión
           </button>
-        </header>
+        </div>
+      </div>
 
-        <section class="cards-grid" aria-label="Resumen de tu cuenta y trazabilidad de seguridad">
-          <article class="cs-card">
-            <h2>Estado de tu Perfil Relacional (5FN)</h2>
-            <ul class="clean-list">
-              <li><strong>Correo verificado:</strong> {{ usuario.correo_electronico }}</li>
-              <li><strong>ID Usuario:</strong> #{{ usuario.id }}</li>
-              @if (usuario.fundacion_id) {
-                <li><strong>Fundación OSAL vinculada:</strong> ID #{{ usuario.fundacion_id }}</li>
-              }
-              @if (usuario.donante_id) {
-                <li><strong>Perfil Donante activo:</strong> ID #{{ usuario.donante_id }}</li>
-              }
-              @if (usuario.voluntario_id) {
-                <li><strong>Perfil Voluntario activo:</strong> ID #{{ usuario.voluntario_id }}</li>
-              }
-            </ul>
+      <main class="sap-container">
+        @if (avisoRestringido()) {
+          <div class="cs-alert-human" role="alert">
+            Esta vista requiere permisos adicionales. Te hemos dirigido a tu centro de cuenta principal.
+          </div>
+        }
+
+        <section class="sap-grid" aria-label="Información de perfil y auditoría de accesos">
+          <article class="cs-card sap-object-card">
+            <div class="card-head">
+              <h2>Ficha de Identidad y Vínculos</h2>
+              <span class="sap-badge sap-badge-ok">Cuenta Activa</span>
+            </div>
+
+            <div class="kv-grid">
+              <div class="kv-item">
+                <span class="kv-label">Correo Electrónico</span>
+                <strong class="kv-value">{{ usuario.correo_electronico }}</strong>
+              </div>
+              <div class="kv-item">
+                <span class="kv-label">Identificador Interno</span>
+                <strong class="kv-value">USR-{{ usuario.id }}</strong>
+              </div>
+              <div class="kv-item">
+                <span class="kv-label">Organización OSAL Asociada</span>
+                <strong class="kv-value">{{ usuario.fundacion_id ? 'OSAL #' + usuario.fundacion_id : 'No aplica' }}</strong>
+              </div>
+              <div class="kv-item">
+                <span class="kv-label">Registro de Donante / Voluntario</span>
+                <strong class="kv-value">
+                  {{ usuario.donante_id ? 'Donante #' + usuario.donante_id : '' }}
+                  {{ usuario.voluntario_id ? 'Voluntario #' + usuario.voluntario_id : '' }}
+                  {{ !usuario.donante_id && !usuario.voluntario_id ? 'Representante Institucional' : '' }}
+                </strong>
+              </div>
+            </div>
           </article>
 
-          <article class="cs-card">
-            <h2>Bitácora de Seguridad Reciente (logs_auditoria)</h2>
+          <article class="cs-card sap-object-card">
+            <div class="card-head">
+              <h2>Registro de Auditoría de Seguridad</h2>
+              <span class="sap-badge sap-badge-info">Trazabilidad</span>
+            </div>
+
             @if (auditoria().length === 0) {
-              <p>Cargando eventos de seguridad o operando desde caché local...</p>
+              <p class="empty-note">Consultando historial de eventos de seguridad...</p>
             } @else {
-              <ul class="clean-list">
+              <div class="audit-table">
                 @for (evento of auditoria(); track evento.id) {
-                  <li>
-                    <span class="badge-audit">{{ evento.accion }}</span>
-                    <span>{{ evento.detalle }}</span>
-                  </li>
+                  <div class="audit-row">
+                    <div class="audit-main">
+                      <span class="sap-badge sap-badge-ok">{{ evento.accion }}</span>
+                      <span class="audit-detail">{{ evento.detalle }}</span>
+                    </div>
+                    <time class="audit-time">{{ evento.fecha_evento | date:'yyyy-MM-dd HH:mm' }}</time>
+                  </div>
                 }
-              </ul>
+              </div>
             }
           </article>
         </section>
-      }
-    </main>
+      </main>
+    }
   `,
   styles: [`
-    .panel-container {
-      max-width: 1080px;
-      margin: 2rem auto;
-      padding: 0 1.5rem;
+    .btn-logout {
+      border-color: var(--sap-status-err-border);
+      color: var(--sap-status-err-text);
     }
-    .welcome-banner {
+    .sap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 1.5rem;
+    }
+    .sap-object-card {
+      border-top: 3px solid var(--sap-brand-primary);
+    }
+    .card-head {
       display: flex;
-      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.85rem;
+      margin-bottom: 1.15rem;
+      border-bottom: 1px solid var(--sap-border-subtle);
+    }
+    .card-head h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .kv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+    .kv-item {
+      display: flex;
+      flex-direction: column;
+      padding: 0.75rem;
+      background: var(--sap-bg-canvas);
+      border: 1px solid var(--sap-border-subtle);
+      border-radius: 6px;
+    }
+    .kv-label {
+      font-size: 0.78rem;
+      color: var(--sap-text-secondary);
+      margin-bottom: 0.25rem;
+    }
+    .kv-value {
+      font-size: 0.95rem;
+      color: var(--sap-text-primary);
+    }
+    .audit-table {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .audit-row {
+      display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 1rem;
-      margin-bottom: 1.5rem;
-      border-color: var(--brand-primary);
+      padding: 0.65rem 0.85rem;
+      background: var(--sap-bg-canvas);
+      border: 1px solid var(--sap-border-subtle);
+      border-radius: 6px;
     }
-    .welcome-banner h1 {
-      margin: 0.5rem 0 0.25rem 0;
-      font-size: 1.75rem;
-    }
-    .welcome-banner p {
-      margin: 0;
-      color: var(--text-secondary);
-    }
-    .role-chip {
-      display: inline-block;
-      background-color: var(--status-ok-bg);
-      color: var(--status-ok-text);
-      font-weight: 700;
-      padding: 0.25rem 0.75rem;
-      border-radius: 999px;
-      font-size: 0.875rem;
-    }
-    .btn-logout {
-      min-height: 48px;
-      padding: 0.75rem 1.25rem;
-      font-weight: 700;
-      border: 2px solid var(--status-err-text);
-      background-color: var(--status-err-bg);
-      color: var(--status-err-text);
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 1.5rem;
-    }
-    .cards-grid h2 {
-      margin-top: 0;
-      font-size: 1.25rem;
-    }
-    .clean-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    .clean-list li {
-      padding: 0.65rem 0;
-      border-bottom: 1px solid var(--border-subtle);
+    .audit-main {
       display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
     }
-    .badge-audit {
-      font-weight: 700;
-      color: var(--brand-primary);
-      font-size: 0.85rem;
+    .audit-detail {
+      font-size: 0.9rem;
+    }
+    .audit-time {
+      font-size: 0.8rem;
+      color: var(--sap-text-secondary);
+      white-space: nowrap;
     }
   `]
 })
@@ -150,10 +180,7 @@ export class PanelProtegidoComponent implements OnInit {
       next: (res) => {
         this.auditoria.set(res.auditoria_reciente);
       },
-      error: () => {
-        // En caso de pérdida de señal rural, conserva la vista con los datos de sesión en caché
-      },
+      error: () => {},
     });
   }
 }
-

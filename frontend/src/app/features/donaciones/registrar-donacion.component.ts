@@ -39,17 +39,17 @@ interface DonacionResumen {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <main class="container" aria-labelledby="cu04-heading">
-      <header class="cs-card header-banner">
+    <div class="sap-page-header">
+      <div class="sap-page-header-inner">
         <div>
-          <span class="tag-pill">CU04 & CU07 · Transacciones y Certificados Tributarios 5FN</span>
-          <h1 id="cu04-heading">Registrar Donación y Descargar Certificado PDF</h1>
-          <p>
-            Reporta tu aporte económico o en especie para una fundación de la Sabana Norte, adjunta tu comprobante y descarga tu certificado tributario inmediato.
-          </p>
+          <span class="sap-breadcrumb">Gestión Financiera y Donaciones</span>
+          <h1 class="sap-page-title">Registro Transaccional de Aportes y Certificación Tributaria</h1>
+          <p class="sap-page-subtitle">Radicación de aportes monetarios o en especie con emisión automática de certificados PDF verificables.</p>
         </div>
-      </header>
+      </div>
+    </div>
 
+    <main class="sap-container">
       @if (mensajeOfflineHumano()) {
         <div class="cs-alert-human" role="alert">
           {{ mensajeOfflineHumano() }}
@@ -63,13 +63,16 @@ interface DonacionResumen {
       }
 
       <div class="layout-grid">
-        <!-- FORMULARIO CU04 -->
-        <section class="cs-card" aria-label="Formulario para reportar donación">
-          <h2>Reportar Nuevo Aporte Solidario</h2>
+        <section class="cs-card sap-form-panel" aria-label="Formulario de registro de donación">
+          <div class="panel-head">
+            <h2>Formulario de Radicación de Aporte</h2>
+            <span class="sap-badge sap-badge-info">Transacción Segura</span>
+          </div>
+
           <form (ngSubmit)="enviarDonacion()" novalidate>
             <div class="form-group">
-              <label for="campana_sel">1. Campaña Rural a Beneficiar *</label>
-              <select id="campana_sel" name="campana_sel" [(ngModel)]="form.campana_id" (ngModelChange)="guardarBorrador()">
+              <label for="campana_sel" class="sap-form-label">Campaña Destinataria *</label>
+              <select id="campana_sel" name="campana_sel" class="sap-input" [(ngModel)]="form.campana_id" (ngModelChange)="guardarBorrador()">
                 @for (c of campanas(); track c.id) {
                   <option [ngValue]="c.id">{{ c.titulo }} ({{ c.fundacion.municipio }})</option>
                 }
@@ -77,7 +80,7 @@ interface DonacionResumen {
             </div>
 
             <div class="form-group">
-              <label>2. Modalidad de tu Aporte *</label>
+              <label class="sap-form-label">Modalidad del Aporte *</label>
               <div class="modality-toggle">
                 <button
                   type="button"
@@ -85,7 +88,7 @@ interface DonacionResumen {
                   [class.active]="form.modalidad === 'ECONOMICA'"
                   (click)="cambiarModalidad('ECONOMICA')"
                 >
-                  💰 Donación Económica ($ COP)
+                  Aporte Monetario ($ COP)
                 </button>
                 <button
                   type="button"
@@ -93,7 +96,7 @@ interface DonacionResumen {
                   [class.active]="form.modalidad === 'ESPECIE'"
                   (click)="cambiarModalidad('ESPECIE')"
                 >
-                  📦 Donación en Especie (Insumos)
+                  Aporte en Especie (Insumos)
                 </button>
               </div>
             </div>
@@ -101,12 +104,12 @@ interface DonacionResumen {
             @if (form.modalidad === 'ECONOMICA') {
               <div class="grid-2">
                 <div class="form-group">
-                  <label for="monto">Monto Donado ($ COP) *</label>
-                  <input id="monto" name="monto" type="number" min="5000" step="10000" [(ngModel)]="form.monto" (ngModelChange)="guardarBorrador()" required />
+                  <label for="monto" class="sap-form-label">Importe ($ COP) *</label>
+                  <input id="monto" name="monto" type="number" min="5000" step="10000" class="sap-input" [(ngModel)]="form.monto" (ngModelChange)="guardarBorrador()" required />
                 </div>
                 <div class="form-group">
-                  <label for="metodo_pago">Método de Pago *</label>
-                  <select id="metodo_pago" name="metodo_pago" [(ngModel)]="form.metodo_pago_id" (ngModelChange)="guardarBorrador()">
+                  <label for="metodo_pago" class="sap-form-label">Medio de Pago *</label>
+                  <select id="metodo_pago" name="metodo_pago" class="sap-input" [(ngModel)]="form.metodo_pago_id" (ngModelChange)="guardarBorrador()">
                     @for (mp of catalogos()?.metodos_pago || []; track mp.id) {
                       <option [ngValue]="mp.id">{{ mp.nombre }}</option>
                     }
@@ -115,23 +118,23 @@ interface DonacionResumen {
               </div>
 
               <div class="form-group">
-                <label for="ref_bancaria">Número de Comprobante o Referencia Bancaria *</label>
-                <input id="ref_bancaria" name="ref_bancaria" type="text" [(ngModel)]="form.referencia_bancaria" (ngModelChange)="guardarBorrador()" placeholder="Ej: PSE-98451203" required />
+                <label for="ref_bancaria" class="sap-form-label">Referencia o Comprobante Bancario *</label>
+                <input id="ref_bancaria" name="ref_bancaria" type="text" class="sap-input" [(ngModel)]="form.referencia_bancaria" (ngModelChange)="guardarBorrador()" placeholder="Ej: PSE-98451203" required />
               </div>
             } @else {
               <div class="form-group">
-                <label for="desc_esp">Descripción de los Artículos o Insumos *</label>
-                <input id="desc_esp" name="desc_esp" type="text" [(ngModel)]="form.descripcion_articulos" (ngModelChange)="guardarBorrador()" placeholder="Ej: Kits de semillas de hortalizas y palas agrícolas" required />
+                <label for="desc_esp" class="sap-form-label">Detalle Técnico de los Bienes o Insumos *</label>
+                <input id="desc_esp" name="desc_esp" type="text" class="sap-input" [(ngModel)]="form.descripcion_articulos" (ngModelChange)="guardarBorrador()" placeholder="Ej: Kits de semillas de hortalizas y herramientas" required />
               </div>
 
               <div class="grid-2">
                 <div class="form-group">
-                  <label for="cantidad_esp">Cantidad *</label>
-                  <input id="cantidad_esp" name="cantidad_esp" type="number" min="1" [(ngModel)]="form.cantidad" (ngModelChange)="guardarBorrador()" required />
+                  <label for="cantidad_esp" class="sap-form-label">Cantidad *</label>
+                  <input id="cantidad_esp" name="cantidad_esp" type="number" min="1" class="sap-input" [(ngModel)]="form.cantidad" (ngModelChange)="guardarBorrador()" required />
                 </div>
                 <div class="form-group">
-                  <label for="unidad_esp">Unidad de Medida *</label>
-                  <select id="unidad_esp" name="unidad_esp" [(ngModel)]="form.unidad_medida_id" (ngModelChange)="guardarBorrador()">
+                  <label for="unidad_esp" class="sap-form-label">Unidad de Medida *</label>
+                  <select id="unidad_esp" name="unidad_esp" class="sap-input" [(ngModel)]="form.unidad_medida_id" (ngModelChange)="guardarBorrador()">
                     @for (u of catalogos()?.unidades_medida || []; track u.id) {
                       <option [ngValue]="u.id">{{ u.nombre }} ({{ u.simbolo }})</option>
                     }
@@ -141,61 +144,61 @@ interface DonacionResumen {
             }
 
             <div class="form-group">
-              <label for="comp_file">3. Subir Comprobante o Fotografía del Aporte *</label>
-              <input id="comp_file" type="file" accept=".pdf,.png,.jpg" (change)="seleccionarComprobante($event)" />
-              <small>Soporte seleccionado: <strong>{{ form.nombre_comprobante }}</strong></small>
+              <label for="comp_file" class="sap-form-label">Soporte Documental del Aporte *</label>
+              <input id="comp_file" type="file" class="sap-input" accept=".pdf,.png,.jpg" (change)="seleccionarComprobante($event)" />
+              <small class="file-hint">Archivo seleccionado: <strong>{{ form.nombre_comprobante }}</strong></small>
             </div>
 
             <div class="form-group">
-              <label for="obs">Mensaje solidario u observaciones de entrega</label>
-              <textarea id="obs" name="obs" rows="2" [(ngModel)]="form.observaciones" (ngModelChange)="guardarBorrador()" placeholder="Ej: Entregar en la escuela rural el viernes por la mañana."></textarea>
+              <label for="obs" class="sap-form-label">Observaciones de Destinación o Entrega</label>
+              <textarea id="obs" name="obs" rows="2" class="sap-input" [(ngModel)]="form.observaciones" (ngModelChange)="guardarBorrador()" placeholder="Notas adicionales para la fundación receptora..."></textarea>
             </div>
 
             <button type="submit" class="cs-btn btn-full" [disabled]="enviando()">
-              {{ enviando() ? 'Procesando aporte...' : 'Registrar Aporte y Subir Comprobante' }}
+              {{ enviando() ? 'Contabilizando aporte...' : 'Registrar Aporte y Emitir Soporte' }}
             </button>
           </form>
         </section>
 
-        <!-- HISTORIAL Y CERTIFICADOS TRIBUTARIOS PDF (CU07) -->
-        <section class="cs-card" aria-label="Aportes registrados y descarga de certificados tributarios">
-          <h2>Mis Aportes y Certificados Tributarios (CU07)</h2>
-          <p class="helper-text">
-            Las donaciones económicas generan un recibo tributario verificable en PDF conforme al Estatuto Tributario.
-          </p>
+        <section class="cs-card sap-form-panel" aria-label="Libro de aportes y certificados tributarios">
+          <div class="panel-head">
+            <h2>Libro de Transacciones y Certificados Tributarios</h2>
+            <span class="sap-badge sap-badge-ok">Emisión PDF</span>
+          </div>
 
           @if (donaciones().length === 0) {
-            <p>Aún no hay donaciones registradas en esta sesión. Registra tu primer aporte en el formulario.</p>
+            <p class="empty-msg">No se registran movimientos en el libro actual. Utiliza el formulario adjunto para radicar un aporte.</p>
           } @else {
             <div class="donaciones-list">
               @for (d of donaciones(); track d.id) {
                 <article class="donacion-item">
                   <div class="donacion-top">
                     <span class="ref-badge">{{ d.codigo_referencia }}</span>
-                    <span class="mod-badge">{{ d.modalidad }}</span>
+                    <span class="sap-badge sap-badge-info">{{ d.modalidad }}</span>
                   </div>
                   <h3>{{ d.campana_titulo }}</h3>
-                  <p class="small-meta">Fundación: {{ d.fundacion_nombre }} · Donante: {{ d.donante_nombre }}</p>
+                  <p class="small-meta">Entidad: {{ d.fundacion_nombre }} · Aportante: {{ d.donante_nombre }}</p>
 
                   @if (d.economica) {
-                    <p class="amount-highlight">
-                      Monto: \${{ d.economica.monto | number:'1.0-0' }} {{ d.economica.moneda }} ({{ d.economica.metodo_pago }})
-                    </p>
+                    <div class="fin-summary">
+                      <span>Importe Verificado: <strong>\${{ d.economica.monto | number:'1.0-0' }} {{ d.economica.moneda }}</strong></span>
+                      <span>Medio: {{ d.economica.metodo_pago }}</span>
+                    </div>
                     <a
-                      class="btn-pdf"
+                      class="cs-btn btn-pdf"
                       [href]="'http://localhost:5000/api/donaciones/economicas/' + d.economica.id + '/certificado-pdf'"
                       target="_blank"
                       rel="noopener"
                     >
-                      📄 Descargar Certificado Tributario PDF ({{ d.economica.consecutivo_tributario }})
+                      Descargar Certificado Tributario PDF ({{ d.economica.consecutivo_tributario }})
                     </a>
                   }
 
                   @if (d.especie) {
-                    <p class="amount-highlight">
-                      Especie: {{ d.especie.cantidad }} {{ d.especie.unidad_simbolo }} — {{ d.especie.descripcion_articulos }}
-                    </p>
-                    <span class="logistics-chip">Estado Logístico: {{ d.especie.estado_logistico_actual }}</span>
+                    <div class="fin-summary">
+                      <span>Detalle: <strong>{{ d.especie.cantidad }} {{ d.especie.unidad_simbolo }}</strong> — {{ d.especie.descripcion_articulos }}</span>
+                      <span class="sap-badge sap-badge-ok">Estado: {{ d.especie.estado_logistico_actual }}</span>
+                    </div>
                   }
                 </article>
               }
@@ -206,30 +209,26 @@ interface DonacionResumen {
     </main>
   `,
   styles: [`
-    .container { max-width: 1080px; margin: 2rem auto; padding: 0 1.5rem; }
-    .header-banner { margin-bottom: 1.5rem; border-color: var(--brand-primary); }
-    .header-banner h1 { margin: 0.4rem 0; font-size: 1.75rem; }
-    .tag-pill { display: inline-block; background: var(--status-ok-bg); color: var(--status-ok-text); font-weight: 800; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.85rem; }
-    .layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; align-items: start; }
-    .form-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.85rem; }
-    label { font-weight: 700; margin-bottom: 0.35rem; }
-    input, select, textarea { min-height: 48px; padding: 0.65rem 0.85rem; font-size: 1rem; border: 2px solid var(--border-strong); border-radius: 8px; }
+    .layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem; align-items: start; }
+    .sap-form-panel { border-top: 3px solid var(--sap-brand-primary); }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.85rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--sap-border-subtle); }
+    .panel-head h2 { margin: 0; font-size: 1.12rem; }
+    .form-group { margin-bottom: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.9rem; }
     .modality-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
-    .toggle-btn { min-height: 48px; font-weight: 700; border: 2px solid var(--border-strong); background: #FFFFFF; border-radius: 8px; cursor: pointer; }
-    .toggle-btn.active { background: var(--status-ok-bg); border-color: var(--brand-primary); color: var(--status-ok-text); }
+    .toggle-btn { min-height: 42px; font-weight: 700; font-size: 0.9rem; border: 1px solid var(--sap-border-strong); background: var(--sap-bg-surface); border-radius: 4px; cursor: pointer; }
+    .toggle-btn.active { background: #E8F1FF; border-color: var(--sap-brand-primary); color: var(--sap-brand-primary); }
+    .file-hint { display: block; margin-top: 0.35rem; font-size: 0.82rem; color: var(--sap-text-secondary); }
     .btn-full { width: 100%; margin-top: 0.5rem; }
-    .alert-success { border-left: 6px solid var(--brand-primary); background: var(--status-ok-bg); color: var(--status-ok-text); padding: 1rem; border-radius: 8px; font-weight: 700; margin-bottom: 1rem; }
-    .donaciones-list { display: flex; flex-direction: column; gap: 1rem; }
-    .donacion-item { border: 2px solid var(--border-subtle); border-radius: 10px; padding: 1rem; background: #F9FAF7; }
-    .donacion-top { display: flex; justify-content: space-between; margin-bottom: 0.4rem; }
-    .ref-badge { font-weight: 800; color: var(--brand-primary); }
-    .mod-badge { background: var(--status-warn-bg); color: var(--status-warn-text); font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; font-size: 0.8rem; }
-    .donacion-item h3 { margin: 0.2rem 0; font-size: 1.1rem; }
-    .small-meta { margin: 0.2rem 0; font-size: 0.88rem; color: var(--text-secondary); }
-    .amount-highlight { font-weight: 800; margin: 0.5rem 0; }
-    .btn-pdf { display: inline-flex; align-items: center; min-height: 44px; padding: 0.5rem 0.9rem; background: var(--brand-primary); color: #FFFFFF; font-weight: 700; border-radius: 8px; text-decoration: none; font-size: 0.9rem; }
-    .logistics-chip { display: inline-block; background: var(--status-ok-bg); color: var(--status-ok-text); padding: 0.3rem 0.7rem; border-radius: 6px; font-weight: 700; font-size: 0.85rem; }
+    .alert-success { border-left: 4px solid var(--sap-status-ok-border); background: var(--sap-status-ok-bg); color: var(--sap-status-ok-text); padding: 0.9rem 1.2rem; border-radius: 6px; font-weight: 600; margin-bottom: 1.25rem; }
+    .donaciones-list { display: flex; flex-direction: column; gap: 0.9rem; }
+    .donacion-item { border: 1px solid var(--sap-border-subtle); border-radius: 6px; padding: 1rem; background: var(--sap-bg-canvas); }
+    .donacion-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+    .ref-badge { font-family: monospace; font-weight: 700; color: var(--sap-brand-primary); font-size: 0.9rem; }
+    .donacion-item h3 { margin: 0.2rem 0; font-size: 1rem; }
+    .small-meta { margin: 0.2rem 0 0.65rem 0; font-size: 0.85rem; color: var(--sap-text-secondary); }
+    .fin-summary { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; padding: 0.6rem 0.75rem; background: #FFFFFF; border: 1px solid var(--sap-border-subtle); border-radius: 4px; font-size: 0.88rem; margin-bottom: 0.75rem; }
+    .btn-pdf { width: 100%; font-size: 0.88rem; min-height: 40px; }
   `]
 })
 export class RegistrarDonacionComponent implements OnInit {
@@ -340,4 +339,3 @@ export class RegistrarDonacionComponent implements OnInit {
     });
   }
 }
-

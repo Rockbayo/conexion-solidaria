@@ -19,29 +19,32 @@ interface CompetenciaVoluntario {
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <main class="container" aria-labelledby="cu10-heading">
-      <header class="cs-card header-banner">
+    <div class="sap-page-header">
+      <div class="sap-page-header-inner">
         <div>
-          <span class="tag-pill">CU10 · Perfil de Habilidades del Voluntario 5FN</span>
-          <h1 id="cu10-heading">Gestión de Competencias y Disponibilidad Rural</h1>
-          <p>
-            Administra tus saberes técnicos, pedagógicos o logísticos para conectarte con las necesidades de las veredas de Sabana Norte.
-          </p>
+          <span class="sap-breadcrumb">Gestión de Talento y Capacidades</span>
+          <h1 class="sap-page-title">Matriz de Competencias y Disponibilidad Operativa</h1>
+          <p class="sap-page-subtitle">Administración de especialidades técnicas, experiencia acreditada y cobertura de desplazamiento rural.</p>
         </div>
-      </header>
+      </div>
+    </div>
 
+    <main class="sap-container">
       @if (mensajeHumano()) {
         <div class="cs-alert-human" role="status">{{ mensajeHumano() }}</div>
       }
 
       <div class="layout-grid">
-        <!-- FORMULARIO PARA AGREGAR/ACTUALIZAR COMPETENCIA Y DISPONIBILIDAD -->
-        <section class="cs-card" aria-label="Formulario para agregar competencia al perfil">
-          <h2>Añadir o Actualizar Competencia</h2>
+        <section class="cs-card sap-panel" aria-label="Registro de competencia">
+          <div class="panel-head">
+            <h2>Asignación de Competencia y Disponibilidad</h2>
+            <span class="sap-badge sap-badge-info">Perfil Activo</span>
+          </div>
+
           <form (ngSubmit)="guardarPerfilYHabilidad()" novalidate>
             <div class="form-group">
-              <label for="hab_sel">Competencia del Catálogo (habilidades) *</label>
-              <select id="hab_sel" name="hab_sel" [(ngModel)]="form.habilidad_id">
+              <label for="hab_sel" class="sap-form-label">Competencia Técnica o Comunitaria *</label>
+              <select id="hab_sel" name="hab_sel" class="sap-input" [(ngModel)]="form.habilidad_id">
                 @for (h of catalogos()?.habilidades || []; track h.id) {
                   <option [ngValue]="h.id">{{ h.nombre }} — {{ h.descripcion }}</option>
                 }
@@ -50,16 +53,16 @@ interface CompetenciaVoluntario {
 
             <div class="grid-2">
               <div class="form-group">
-                <label for="nivel_sel">Nivel de Dominio *</label>
-                <select id="nivel_sel" name="nivel_sel" [(ngModel)]="form.nivel_dominio">
-                  <option value="BASICO">Básico / Aprendiz</option>
-                  <option value="INTERMEDIO">Intermedio / Práctico</option>
+                <label for="nivel_sel" class="sap-form-label">Nivel de Dominio *</label>
+                <select id="nivel_sel" name="nivel_sel" class="sap-input" [(ngModel)]="form.nivel_dominio">
+                  <option value="BASICO">Básico / Operativo</option>
+                  <option value="INTERMEDIO">Intermedio / Autónomo</option>
                   <option value="AVANZADO">Avanzado / Formador</option>
                 </select>
               </div>
               <div class="form-group">
-                <label for="anos_exp">Años de Experiencia *</label>
-                <input id="anos_exp" name="anos_exp" type="number" min="0" max="50" [(ngModel)]="form.anos_experiencia" />
+                <label for="anos_exp" class="sap-form-label">Años de Experiencia *</label>
+                <input id="anos_exp" name="anos_exp" type="number" min="0" max="50" class="sap-input" [(ngModel)]="form.anos_experiencia" />
               </div>
             </div>
 
@@ -67,48 +70,47 @@ interface CompetenciaVoluntario {
 
             <div class="grid-2">
               <div class="form-group">
-                <label for="horas_sem">Horas Disponibles por Semana</label>
-                <input id="horas_sem" name="horas_sem" type="number" min="1" max="48" [(ngModel)]="form.disponibilidad_horas_semana" />
+                <label for="horas_sem" class="sap-form-label">Capacidad Horaria Semanal</label>
+                <input id="horas_sem" name="horas_sem" type="number" min="1" max="48" class="sap-input" [(ngModel)]="form.disponibilidad_horas_semana" />
               </div>
               <div class="form-group checkbox-group">
                 <label>
                   <input type="checkbox" name="desplazamiento" [(ngModel)]="form.dispuesto_desplazamiento_rural" />
-                  Dispuesto a desplazamiento hacia veredas rurales
+                  Habilitado para desplazamiento a zonas veredales
                 </label>
               </div>
             </div>
 
             <div class="form-group">
-              <label for="bio">Biografía Corta / Presentación Comunitaria</label>
-              <textarea id="bio" name="bio" rows="2" [(ngModel)]="form.biografia_corta"></textarea>
+              <label for="bio" class="sap-form-label">Resumen Profesional y Vocación Comunitaria</label>
+              <textarea id="bio" name="bio" rows="2" class="sap-input" [(ngModel)]="form.biografia_corta"></textarea>
             </div>
 
             <button type="submit" class="cs-btn btn-full">
-              Guardar Habilidad y Disponibilidad
+              Actualizar Ficha de Competencias
             </button>
           </form>
         </section>
 
-        <!-- TARJETA DE HABILIDADES REGISTRADAS -->
-        <section class="cs-card" aria-label="Matriz de competencias registradas del voluntario">
-          <h2>Competencias Activas de {{ nombreVoluntario() }}</h2>
-          <p class="subtitle">
-            Disponibilidad actual: <strong>{{ form.disponibilidad_horas_semana }} horas/semana</strong>
-          </p>
+        <section class="cs-card sap-panel" aria-label="Competencias vinculadas">
+          <div class="panel-head">
+            <h2>Competencias Certificadas: {{ nombreVoluntario() }}</h2>
+            <span class="sap-badge sap-badge-ok">{{ form.disponibilidad_horas_semana }} h / semana</span>
+          </div>
 
           @if (competencias().length === 0) {
-            <p>Aún no has vinculado habilidades específicas a tu perfil. Añade la primera usando el formulario.</p>
+            <p class="empty-note">Aún no se han registrado competencias en la matriz. Utilice el formulario contiguo para asociar una especialidad.</p>
           } @else {
             <div class="skills-list">
               @for (c of competencias(); track c.id) {
                 <article class="skill-card">
                   <div>
-                    <span class="cat-badge">{{ c.categoria_nombre }}</span>
+                    <span class="sap-badge sap-badge-info">{{ c.categoria_nombre }}</span>
                     <h3>{{ c.habilidad_nombre }}</h3>
-                    <p>Nivel: <strong>{{ c.nivel_dominio }}</strong> · Experiencia: {{ c.anos_experiencia }} año(s)</p>
+                    <p>Dominio: <strong>{{ c.nivel_dominio }}</strong> · Trayectoria: {{ c.anos_experiencia }} año(s)</p>
                   </div>
-                  <button type="button" class="btn-remove" (click)="eliminarHabilidad(c.id)">
-                    Quitar
+                  <button type="button" class="sap-btn-secondary btn-remove" (click)="eliminarHabilidad(c.id)">
+                    Desvincular
                   </button>
                 </article>
               }
@@ -119,26 +121,22 @@ interface CompetenciaVoluntario {
     </main>
   `,
   styles: [`
-    .container { max-width: 1080px; margin: 2rem auto; padding: 0 1.5rem; }
-    .header-banner { margin-bottom: 1.5rem; border-color: var(--brand-primary); }
-    .header-banner h1 { margin: 0.4rem 0; font-size: 1.75rem; }
-    .tag-pill { display: inline-block; background: var(--status-ok-bg); color: var(--status-ok-text); font-weight: 800; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.85rem; }
-    .layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 1.5rem; align-items: start; }
-    .form-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.85rem; }
-    label { font-weight: 700; margin-bottom: 0.35rem; }
-    input[type="text"], input[type="number"], select, textarea { min-height: 48px; padding: 0.65rem 0.85rem; font-size: 1rem; border: 2px solid var(--border-strong); border-radius: 8px; }
-    .checkbox-group { justify-content: center; }
-    .checkbox-group label { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
-    .checkbox-group input[type="checkbox"] { width: 22px; height: 22px; }
+    .layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem; align-items: start; }
+    .sap-panel { border-top: 3px solid var(--sap-brand-primary); }
+    .panel-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.85rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--sap-border-subtle); }
+    .panel-head h2 { margin: 0; font-size: 1.12rem; }
+    .form-group { margin-bottom: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.9rem; }
+    .checkbox-group { display: flex; align-items: center; padding-top: 1.25rem; }
+    .checkbox-group label { display: flex; align-items: center; gap: 0.55rem; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
+    .checkbox-group input[type="checkbox"] { width: 18px; height: 18px; }
     .btn-full { width: 100%; }
-    .divider { margin: 1.2rem 0; border: 0; border-top: 2px solid var(--border-subtle); }
-    .skills-list { display: flex; flex-direction: column; gap: 0.85rem; }
-    .skill-card { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 2px solid var(--border-subtle); border-radius: 10px; background: #F9FAF7; }
-    .cat-badge { background: var(--status-ok-bg); color: var(--status-ok-text); font-weight: 800; padding: 0.15rem 0.55rem; border-radius: 6px; font-size: 0.78rem; }
-    .skill-card h3 { margin: 0.25rem 0; font-size: 1.05rem; }
-    .skill-card p { margin: 0; font-size: 0.88rem; color: var(--text-secondary); }
-    .btn-remove { min-height: 42px; padding: 0.4rem 0.85rem; border: 2px solid var(--status-err-text); background: var(--status-err-bg); color: var(--status-err-text); font-weight: 700; border-radius: 8px; cursor: pointer; }
+    .divider { margin: 1.15rem 0; border: 0; border-top: 1px solid var(--sap-border-subtle); }
+    .skills-list { display: flex; flex-direction: column; gap: 0.8rem; }
+    .skill-card { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1rem; border: 1px solid var(--sap-border-subtle); border-radius: 6px; background: var(--sap-bg-canvas); }
+    .skill-card h3 { margin: 0.35rem 0 0.2rem 0; font-size: 1rem; }
+    .skill-card p { margin: 0; font-size: 0.86rem; color: var(--sap-text-secondary); }
+    .btn-remove { border-color: var(--sap-status-err-border); color: var(--sap-status-err-text); min-height: 38px; padding: 0.35rem 0.75rem; font-size: 0.84rem; }
   `]
 })
 export class PerfilHabilidadesComponent implements OnInit {
@@ -218,4 +216,3 @@ export class PerfilHabilidadesComponent implements OnInit {
     });
   }
 }
-

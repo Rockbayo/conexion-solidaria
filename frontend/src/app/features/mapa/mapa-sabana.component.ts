@@ -52,48 +52,56 @@ const PINES_FALLBACK_SABANA: PinSabanaNorte[] = [
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   template: `
-    <main class="container" aria-labelledby="cu06-heading">
-      <header class="cs-card header-banner">
+    <div class="sap-page-header">
+      <div class="sap-page-header-inner">
         <div>
-          <span class="tag-pill">CU06 · Mapa Georreferenciado con Leaflet.js (5FN)</span>
-          <h1 id="cu06-heading">Territorio Solidario: Sabana Norte de Cundinamarca</h1>
-          <p>
-            Cruza en tiempo real las tablas <code>fundaciones_osal</code>, <code>direcciones</code> y <code>municipios</code> para ubicar cada organización comunitaria y sus veredas.
-          </p>
+          <span class="sap-breadcrumb">Sistema de Información Geográfica · Sabana Norte</span>
+          <h1 class="sap-page-title">Visor Georreferenciado de Organizaciones Rurales</h1>
+          <p class="sap-page-subtitle">Monitoreo espacial de sedes operativas, jurisdicciones municipales y cobertura veredal en Cundinamarca.</p>
         </div>
 
-        <div class="filter-box">
-          <label for="mun_filter">Filtrar por Municipio:</label>
-          <select id="mun_filter" [(ngModel)]="municipioFiltro" (ngModelChange)="filtrarPorMunicipio()">
+        <div class="filter-bar">
+          <label for="mun_filter" class="sap-form-label">Filtro por Jurisdicción Municipal</label>
+          <select id="mun_filter" class="sap-input" [(ngModel)]="municipioFiltro" (ngModelChange)="filtrarPorMunicipio()">
             <option [ngValue]="0">Todos los municipios (Sabana Norte)</option>
             @for (m of catalogos()?.municipios_sabana_norte || []; track m.id) {
-              <option [ngValue]="m.id">{{ m.nombre }}</option>
+              <option [ngValue]="m.id">{{ m.nombre }} (DANE {{ m.codigo_dane }})</option>
             }
           </select>
         </div>
-      </header>
+      </div>
+    </div>
 
+    <main class="sap-container">
       <div class="map-layout">
-        <!-- LIENZO INTERACTIVO LEAFLET.JS -->
-        <section class="cs-card map-card" aria-label="Mapa interactivo de fundaciones en la Sabana Norte">
+        <section class="cs-card map-card" aria-label="Cartografía interactiva de Sabana Norte">
+          <div class="map-toolbar">
+            <strong>Cartografía Base OpenStreetMap · Cobertura Rural</strong>
+            <span class="sap-badge sap-badge-info">{{ pines().length }} Sedes Localizadas</span>
+          </div>
           <div id="leaflet-sabana-map" class="leaflet-canvas"></div>
         </section>
 
-        <!-- TARJETAS LATERALES ACCESIBLES (WCAG 2.2 ALTERNATIVA TEXTUAL AL MAPA) -->
-        <section class="pins-sidebar" aria-label="Listado accesible de fundaciones en el mapa">
-          <h2>Fundaciones Georreferenciadas ({{ pines().length }})</h2>
+        <section class="pins-sidebar" aria-label="Directorio de sedes georreferenciadas">
+          <div class="sidebar-header">
+            <h2>Directorio de Sedes en el Territorio</h2>
+          </div>
+
           @for (p of pines(); track p.fundacion_id) {
             <article class="cs-card pin-card" (click)="centrarPinEnMapa(p)" tabindex="0">
               <div class="pin-top">
-                <span class="mun-tag">📍 {{ p.municipio_nombre }} · {{ p.vereda_o_barrio }}</span>
-                <span class="val-tag">{{ p.estado_validacion }}</span>
+                <span class="sap-badge sap-badge-info">{{ p.municipio_nombre }} · {{ p.vereda_o_barrio }}</span>
+                <span class="sap-badge sap-badge-ok">{{ p.estado_validacion }}</span>
               </div>
               <h3>{{ p.razon_social }}</h3>
-              <p class="dir-text">{{ p.direccion_fisica }} ({{ p.indicaciones_rurales || 'Zona rural' }})</p>
-              <p class="coords-text">Coordenadas: {{ p.latitud }}, {{ p.longitud }}</p>
+              <p class="dir-text">{{ p.direccion_fisica }} — {{ p.indicaciones_rurales || 'Sector rural' }}</p>
+              <div class="meta-strip">
+                <span>NIT: {{ p.nit }}</span>
+                <span>Lat/Lng: {{ p.latitud }}, {{ p.longitud }}</span>
+              </div>
               <div class="pin-actions">
-                <a routerLink="/campanas" class="btn-link">Ver Campañas ({{ p.total_campanas }})</a>
-                <a routerLink="/donar" class="btn-link">Apoyar OSAL</a>
+                <a routerLink="/campanas" class="sap-btn-secondary btn-sm">Campañas ({{ p.total_campanas }})</a>
+                <a routerLink="/donar" class="cs-btn btn-sm">Realizar Aporte</a>
               </div>
             </article>
           }
@@ -102,29 +110,22 @@ const PINES_FALLBACK_SABANA: PinSabanaNorte[] = [
     </main>
   `,
   styles: [`
-    .container { max-width: 1140px; margin: 2rem auto; padding: 0 1.5rem; }
-    .header-banner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; border-color: var(--brand-primary); }
-    .header-banner h1 { margin: 0.4rem 0; font-size: 1.7rem; }
-    .tag-pill { display: inline-block; background: var(--status-ok-bg); color: var(--status-ok-text); font-weight: 800; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.85rem; }
-    .filter-box { display: flex; flex-direction: column; min-width: 250px; }
-    .filter-box label { font-weight: 700; margin-bottom: 0.35rem; }
-    .filter-box select { min-height: 48px; padding: 0.6rem 0.85rem; border: 2px solid var(--border-strong); border-radius: 8px; font-size: 1rem; }
-    .map-layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.5rem; align-items: start; }
-    @media (max-width: 900px) { .map-layout { grid-template-columns: 1fr; } }
-    .map-card { padding: 0.75rem; border-color: var(--border-strong); }
-    .leaflet-canvas { width: 100%; height: 520px; border-radius: 8px; border: 2px solid var(--border-subtle); }
-    .pins-sidebar { display: flex; flex-direction: column; gap: 1rem; }
-    .pins-sidebar h2 { margin: 0; font-size: 1.25rem; }
-    .pin-card { cursor: pointer; border-color: var(--border-strong); transition: transform 0.15s ease; }
-    .pin-card:hover { transform: translateY(-2px); border-color: var(--brand-primary); }
-    .pin-top { display: flex; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.4rem; }
-    .mun-tag { background: var(--status-warn-bg); color: var(--status-warn-text); font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.8rem; }
-    .val-tag { background: var(--status-ok-bg); color: var(--status-ok-text); font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 6px; font-size: 0.78rem; }
-    .pin-card h3 { margin: 0.25rem 0; font-size: 1.1rem; }
-    .dir-text { margin: 0.25rem 0; font-size: 0.9rem; color: var(--text-secondary); }
-    .coords-text { margin: 0.2rem 0 0.6rem 0; font-size: 0.8rem; font-family: monospace; color: var(--brand-primary); }
-    .pin-actions { display: flex; gap: 1rem; }
-    .btn-link { font-weight: 800; color: var(--brand-primary); text-decoration: underline; }
+    .filter-bar { min-width: 280px; }
+    .map-layout { display: grid; grid-template-columns: 1.65fr 1fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 920px) { .map-layout { grid-template-columns: 1fr; } }
+    .map-card { padding: 1rem; border-top: 3px solid var(--sap-brand-primary); }
+    .map-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; font-size: 0.88rem; }
+    .leaflet-canvas { width: 100%; height: 540px; border-radius: 6px; border: 1px solid var(--sap-border-subtle); }
+    .pins-sidebar { display: flex; flex-direction: column; gap: 0.9rem; }
+    .sidebar-header h2 { margin: 0; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--sap-text-secondary); }
+    .pin-card { cursor: pointer; border-left: 4px solid var(--sap-brand-primary); padding: 1.15rem; transition: box-shadow 0.15s ease, transform 0.15s ease; }
+    .pin-card:hover { transform: translateY(-2px); }
+    .pin-top { display: flex; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .pin-card h3 { margin: 0.2rem 0; font-size: 1.05rem; }
+    .dir-text { margin: 0.25rem 0 0.6rem 0; font-size: 0.88rem; color: var(--sap-text-secondary); }
+    .meta-strip { display: flex; justify-content: space-between; font-size: 0.78rem; font-family: monospace; color: var(--sap-text-secondary); padding: 0.4rem 0.6rem; background: var(--sap-bg-canvas); border-radius: 4px; margin-bottom: 0.8rem; }
+    .pin-actions { display: flex; gap: 0.6rem; }
+    .btn-sm { min-height: 36px; padding: 0.35rem 0.85rem; font-size: 0.84rem; }
   `]
 })
 export class MapaSabanaComponent implements OnInit, AfterViewInit {
@@ -194,8 +195,8 @@ export class MapaSabanaComponent implements OnInit, AfterViewInit {
 
     for (const p of this.pines()) {
       const marker = this.leafletLib.circleMarker([p.latitud, p.longitud], {
-        radius: 11,
-        fillColor: '#14532D',
+        radius: 10,
+        fillColor: '#0057D2',
         color: '#FFFFFF',
         weight: 3,
         opacity: 1,
@@ -203,8 +204,8 @@ export class MapaSabanaComponent implements OnInit, AfterViewInit {
       });
 
       marker.bindPopup(`
-        <div style="font-family: system-ui; min-width: 210px;">
-          <strong style="color:#14532D; font-size:14px;">${p.razon_social}</strong><br/>
+        <div style="font-family: 'Segoe UI', system-ui; min-width: 210px;">
+          <strong style="color:#0057D2; font-size:14px;">${p.razon_social}</strong><br/>
           <span><b>Municipio:</b> ${p.municipio_nombre} (${p.vereda_o_barrio})</span><br/>
           <span><b>Dirección:</b> ${p.direccion_fisica}</span><br/>
           <span><b>Estado:</b> ${p.estado_validacion}</span>
@@ -221,4 +222,3 @@ export class MapaSabanaComponent implements OnInit, AfterViewInit {
     }
   }
 }
-
