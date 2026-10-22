@@ -8,6 +8,7 @@ from app.blueprints.catalogos import catalogos_bp
 from app.blueprints.osal import osal_bp
 from app.blueprints.campanas import campanas_bp
 from app.blueprints.donaciones import donaciones_bp
+from app.blueprints.voluntariado import voluntariado_bp
 
 
 def create_app(config_class=Config):
@@ -29,6 +30,7 @@ def create_app(config_class=Config):
     app.register_blueprint(osal_bp)
     app.register_blueprint(campanas_bp)
     app.register_blueprint(donaciones_bp)
+    app.register_blueprint(voluntariado_bp)
 
     @app.route("/api/health", methods=["GET"])
     def health_check():
