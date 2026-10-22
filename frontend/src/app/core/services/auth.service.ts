@@ -11,6 +11,8 @@ export interface UsuarioSesion {
   nombre_mostrar: string;
   roles: string[];
   fundacion_id: number | null;
+  fundacion_nombre?: string | null;
+  fundacion_estado?: string | null;
   voluntario_id: number | null;
   donante_id: number | null;
 }
@@ -28,17 +30,33 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
-  private get apiUrl(): string {
-    return `${getApiBaseUrl()}/auth`;
-  }
 
   private readonly STORAGE_TOKEN_KEY = 'cs_jwt_token';
   private readonly STORAGE_USER_KEY = 'cs_user_session';
+  private readonly STORAGE_GUEST_KEY = 'cs_guest_mode';
 
   readonly usuarioActual = signal<UsuarioSesion | null>(this.cargarUsuarioDesdeCache());
+  readonly modoInvitado = signal<boolean>(this.cargarModoInvitadoDesdeCache());
   readonly estaAutenticado = computed(() => this.usuarioActual() !== null && !!this.obtenerToken());
+  readonly tieneSesionOInvitado = computed(() => this.estaAutenticado() || this.modoInvitado());
 
-  constructor() {}
+  readonly etiquetaRolPrincipal = computed(() => {
+    const u = this.usuarioActual();
+    if (!u) {
+      return this.modoInvitado() ? 'Visitante · Modo Invitado (Lectura)' : 'Sin Sesión Activa';
+    }
+    if (u.roles.includes('ADMIN')) return 'Administrador de la Plataforma';
+    if (u.roles.includes('REPRESENTANTE_OSAL')) {
+      return u.fundacion_nombre ? `Admin OSAL · ${u.fundacion_nombre}` : 'Administrador de OSAL';
+    }
+    if (u.roles.includes('VOLUNTARIO')) return 'Voluntario Rural Registrado';
+    if (u.roles.includes('DONANTE')) return 'Donante Solidario Registrado';
+    return u.roles.join(' · ');
+  });
+
+  private get apiUrl(): string {
+    return `${getApiBaseUrl()}/auth`;
+  }
 
   iniciarSesion(correo_electronico: string, contrasena: string): Observable<RespuestaLogin> {
     return this.http
@@ -50,17 +68,48 @@ export class AuthService {
       );
   }
 
-  obtenerPerfilremoto(): Observable<{ usuario: UsuarioSesion; auditoria_reciente: Array<{ id: number; accion: string; detalle: string; fecha_evento: string }> }> {
-    return this.http.get<{ usuario: UsuarioSesion; auditoria_reciente: Array<{ id: number; accion: string; detalle: string; fecha_evento: string }> }>(`${this.apiUrl}/me`);
+  registrarCiudadano(payload: Record<string, unknown>): Observable<RespuestaLogin> {
+    return this.http
+      .post<RespuestaLogin>(`${this.apiUrl}/registro-ciudadano`, payload)
+      .pipe(
+        tap((respuesta) => {
+          this.guardarSesion(respuesta.access_token, respuesta.usuario);
+        })
+      );
+  }
+
+  activarModoInvitado(): void {
+    this.cerrarSesionSilencioso();
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(this.STORAGE_GUEST_KEY, 'true');
+    }
+    this.modoInvitado.set(true);
+    this.router.navigate(['/mapa']);
+  }
+
+  obtenerPerfilremoto(): Observable<{
+    usuario: UsuarioSesion;
+    auditoria_reciente: Array<{ id: number; accion: string; entidad_afectada?: string; detalle: string; direccion_ip?: string; fecha_evento: string }>;
+  }> {
+    return this.http.get<{
+      usuario: UsuarioSesion;
+      auditoria_reciente: Array<{ id: number; accion: string; entidad_afectada?: string; detalle: string; direccion_ip?: string; fecha_evento: string }>;
+    }>(`${this.apiUrl}/me`);
   }
 
   cerrarSesion(): void {
+    this.cerrarSesionSilencioso();
+    this.router.navigate(['/login']);
+  }
+
+  private cerrarSesionSilencioso(): void {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem(this.STORAGE_TOKEN_KEY);
       localStorage.removeItem(this.STORAGE_USER_KEY);
+      localStorage.removeItem(this.STORAGE_GUEST_KEY);
     }
     this.usuarioActual.set(null);
-    this.router.navigate(['/login']);
+    this.modoInvitado.set(false);
   }
 
   obtenerToken(): string | null {
@@ -70,16 +119,29 @@ export class AuthService {
     return null;
   }
 
-  tieneRol(rolRequerido: string): boolean {
+  tieneRol(...rolesRequeridos: string[]): boolean {
     const usuario = this.usuarioActual();
-    return !!usuario && usuario.roles.includes(rolRequerido);
+    if (!usuario) return false;
+    return usuario.roles.some((r) => rolesRequeridos.includes(r));
+  }
+
+  rutaInicioPorRol(): string {
+    const u = this.usuarioActual();
+    if (!u) return '/mapa';
+    if (u.roles.includes('ADMIN')) return '/panel';
+    if (u.roles.includes('REPRESENTANTE_OSAL')) return '/dashboard';
+    if (u.roles.includes('VOLUNTARIO')) return '/voluntariado';
+    if (u.roles.includes('DONANTE')) return '/donar';
+    return '/mapa';
   }
 
   private guardarSesion(token: string, usuario: UsuarioSesion): void {
     if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(this.STORAGE_GUEST_KEY);
       localStorage.setItem(this.STORAGE_TOKEN_KEY, token);
       localStorage.setItem(this.STORAGE_USER_KEY, JSON.stringify(usuario));
     }
+    this.modoInvitado.set(false);
     this.usuarioActual.set(usuario);
   }
 
@@ -96,5 +158,11 @@ export class AuthService {
     }
     return null;
   }
-}
 
+  private cargarModoInvitadoDesdeCache(): boolean {
+    if (isPlatformBrowser(this.platformId)) {
+      return localStorage.getItem(this.STORAGE_GUEST_KEY) === 'true';
+    }
+    return false;
+  }
+}

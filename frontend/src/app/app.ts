@@ -11,7 +11,7 @@ import { AuthService } from './core/services/auth.service';
     <header class="sap-shellbar" role="banner">
       <div class="sap-shellbar-inner">
         <div class="sap-shell-brand">
-          <a routerLink="/mapa" class="sap-logo">
+          <a [routerLink]="authService.tieneSesionOInvitado() ? '/mapa' : '/login'" class="sap-logo">
             <span class="sap-logo-mark">CS</span>
             <span class="sap-logo-text">
               <strong>Conexión Solidaria</strong>
@@ -20,23 +20,52 @@ import { AuthService } from './core/services/auth.service';
           </a>
         </div>
 
-        <nav class="sap-shell-nav" aria-label="Navegación corporativa">
-          <a routerLink="/mapa" routerLinkActive="active" class="sap-nav-item">Mapa Territorial</a>
-          <a routerLink="/campanas" routerLinkActive="active" class="sap-nav-item">Causas y Necesidades</a>
-          <a routerLink="/registro-osal" routerLinkActive="active" class="sap-nav-item">Vinculación OSAL</a>
-          <a routerLink="/donar" routerLinkActive="active" class="sap-nav-item">Aportes y Certificados</a>
-          <a routerLink="/voluntariado" routerLinkActive="active" class="sap-nav-item">Voluntariado</a>
+        <!-- NAVEGACIÓN CONDICIONADA POR MÍNIMO PRIVILEGIO (RBAC) -->
+        @if (authService.tieneSesionOInvitado()) {
+          <nav class="sap-shell-nav" aria-label="Navegación según privilegios del rol">
+            <a routerLink="/mapa" routerLinkActive="active" class="sap-nav-item">Mapa Territorial</a>
+            <a routerLink="/campanas" routerLinkActive="active" class="sap-nav-item">Causas y Necesidades</a>
+
+            @if (authService.tieneRol('DONANTE', 'ADMIN')) {
+              <a routerLink="/donar" routerLinkActive="active" class="sap-nav-item">Aportes y Certificados</a>
+            }
+
+            @if (authService.tieneRol('VOLUNTARIO', 'ADMIN')) {
+              <a routerLink="/voluntariado" routerLinkActive="active" class="sap-nav-item">Postulación Voluntariado</a>
+              <a routerLink="/perfil-habilidades" routerLinkActive="active" class="sap-nav-item">Mis Competencias</a>
+            }
+
+            @if (authService.tieneRol('REPRESENTANTE_OSAL', 'ADMIN')) {
+              <a routerLink="/dashboard" routerLinkActive="active" class="sap-nav-item">Tablero OSAL</a>
+              <a routerLink="/trazabilidad" routerLinkActive="active" class="sap-nav-item">Logística en Especie</a>
+            }
+
+            @if (authService.tieneRol('ADMIN')) {
+              <a routerLink="/panel" routerLinkActive="active" class="sap-nav-item">Gobernanza OSAL</a>
+            }
+          </nav>
+        }
+
+        <!-- IDENTIFICADOR PERMANENTE DE SESIÓN Y ROL EN LA ESQUINA SUPERIOR DERECHA -->
+        <div class="sap-identity-zone">
           @if (authService.estaAutenticado()) {
-            <a routerLink="/dashboard" routerLinkActive="active" class="sap-nav-item">Indicadores</a>
-            <a routerLink="/trazabilidad" routerLinkActive="active" class="sap-nav-item">Logística</a>
-            <a routerLink="/perfil-habilidades" routerLinkActive="active" class="sap-nav-item">Competencias</a>
-            <a routerLink="/panel" routerLinkActive="active" class="sap-nav-item sap-user-pill">
-              {{ authService.usuarioActual()?.nombre_mostrar }}
+            <a routerLink="/panel" class="sap-identity-badge" title="Ver detalles de seguridad de mi cuenta">
+              <span class="id-name">{{ authService.usuarioActual()?.nombre_mostrar }}</span>
+              <span class="id-role">{{ authService.etiquetaRolPrincipal() }}</span>
             </a>
+            <button type="button" class="sap-shell-logout" (click)="authService.cerrarSesion()">
+              Salir
+            </button>
+          } @else if (authService.modoInvitado()) {
+            <div class="sap-identity-badge guest">
+              <span class="id-name">Usuario Visitante</span>
+              <span class="id-role">Modo Invitado (Lectura)</span>
+            </div>
+            <a routerLink="/login" class="sap-shell-login">Iniciar Sesión / Registrarme</a>
           } @else {
-            <a routerLink="/login" routerLinkActive="active" class="sap-nav-item sap-login-cta">Iniciar Sesión</a>
+            <span class="no-session-chip">Identificación Requerida</span>
           }
-        </nav>
+        </div>
       </div>
     </header>
     <router-outlet />
@@ -51,14 +80,14 @@ import { AuthService } from './core/services/auth.service';
       z-index: 1000;
     }
     .sap-shellbar-inner {
-      max-width: 1240px;
+      max-width: 1280px;
       margin: 0 auto;
-      padding: 0.55rem 2rem;
+      padding: 0.5rem 1.5rem;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 1rem;
+      gap: 0.85rem;
     }
     .sap-logo {
       display: flex;
@@ -77,36 +106,28 @@ import { AuthService } from './core/services/auth.service';
       justify-content: center;
       font-weight: 800;
       font-size: 0.9rem;
-      letter-spacing: 0.03em;
     }
     .sap-logo-text {
       display: flex;
       flex-direction: column;
       line-height: 1.15;
     }
-    .sap-logo-text strong {
-      font-size: 1rem;
-      font-weight: 700;
-    }
-    .sap-logo-text small {
-      font-size: 0.74rem;
-      color: #CBD5E1;
-    }
+    .sap-logo-text strong { font-size: 0.98rem; font-weight: 700; }
+    .sap-logo-text small { font-size: 0.72rem; color: #CBD5E1; }
     .sap-shell-nav {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 0.25rem;
+      gap: 0.2rem;
     }
     .sap-nav-item {
       color: #E2E8F0;
       text-decoration: none;
-      font-size: 0.86rem;
+      font-size: 0.84rem;
       font-weight: 600;
-      padding: 0.45rem 0.75rem;
+      padding: 0.45rem 0.65rem;
       border-radius: 4px;
       border-bottom: 2px solid transparent;
-      transition: background 0.15s ease, color 0.15s ease;
     }
     .sap-nav-item:hover {
       background: rgba(255, 255, 255, 0.08);
@@ -114,18 +135,63 @@ import { AuthService } from './core/services/auth.service';
     }
     .sap-nav-item.active {
       color: #FFFFFF;
-      background: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.14);
       border-bottom-color: #60A5FA;
     }
-    .sap-login-cta {
+    .sap-identity-zone {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .sap-identity-badge {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      text-decoration: none;
+      color: #FFFFFF;
+      line-height: 1.2;
+    }
+    .sap-identity-badge.guest {
+      background: rgba(231, 101, 0, 0.22);
+      border-color: #F59E0B;
+    }
+    .id-name { font-size: 0.82rem; font-weight: 700; }
+    .id-role { font-size: 0.7rem; color: #93C5FD; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+    .sap-identity-badge.guest .id-role { color: #FCD34D; }
+    .sap-shell-logout {
+      min-height: 36px;
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      border: 1px solid #F87171;
+      background: rgba(166, 28, 28, 0.25);
+      color: #FECACA;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .sap-shell-login {
+      min-height: 36px;
+      padding: 0.4rem 0.85rem;
+      border-radius: 4px;
       background: var(--sap-brand-primary);
       color: #FFFFFF;
-      margin-left: 0.35rem;
+      font-weight: 700;
+      font-size: 0.82rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
     }
-    .sap-user-pill {
-      background: rgba(255, 255, 255, 0.14);
-      color: #FFFFFF;
-      margin-left: 0.35rem;
+    .no-session-chip {
+      font-size: 0.78rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #CBD5E1;
+      font-weight: 600;
     }
   `]
 })

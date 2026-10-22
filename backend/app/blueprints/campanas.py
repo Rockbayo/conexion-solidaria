@@ -4,8 +4,9 @@ Cruza fundaciones_osal, categorias_causas, ods_objetivos, campanas, tipos_necesi
 """
 from datetime import datetime, date
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, get_jwt
 from app.extensions import db
+from app.security import requiere_roles
 from app.models import (
     Campana, NecesidadCampana, TipoNecesidad, FundacionOsal,
     CategoriaCausa, OdsObjetivo, LogAuditoria
@@ -69,17 +70,18 @@ def listar_campanas():
 
 
 @campanas_bp.route("", methods=["POST"])
-@jwt_required(optional=True)
+@requiere_roles("REPRESENTANTE_OSAL", "ADMIN")
 def crear_campana():
     """
-    CU03: Permite a una OSAL crear una campaña solidaria y publicar sus necesidades
-    específicas (apoyo económico, donación en especie o tiempo de voluntariado).
+    Exclusivo para REPRESENTANTE_OSAL o ADMIN (Mínimo Privilegio):
+    Crea una campaña solidaria vinculada estrictamente a la fundación del representante autenticado.
     """
     data = request.get_json(silent=True) or {}
     identidad = get_jwt_identity()
+    claims = get_jwt()
     usuario_id = int(identidad) if identidad else None
 
-    fundacion_id = data.get("fundacion_id")
+    fundacion_id = claims.get("fundacion_id") or data.get("fundacion_id")
     if not fundacion_id:
         primera_fundacion = FundacionOsal.query.first()
         fundacion_id = primera_fundacion.id if primera_fundacion else None

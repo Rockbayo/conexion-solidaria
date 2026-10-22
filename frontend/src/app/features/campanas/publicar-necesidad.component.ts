@@ -47,9 +47,11 @@ export interface CampanaItem {
           <h1 class="sap-page-title">Catálogo de Causas y Necesidades Comunitarias</h1>
           <p class="sap-page-subtitle">Administración de campañas sociales y requerimientos de recursos económicos, en especie y voluntariado.</p>
         </div>
-        <button type="button" class="cs-btn" (click)="mostrarFormulario.set(!mostrarFormulario())">
-          {{ mostrarFormulario() ? 'Cerrar Editor de Campaña' : 'Crear Nueva Campaña' }}
-        </button>
+        @if (authService.tieneRol('REPRESENTANTE_OSAL', 'ADMIN')) {
+          <button type="button" class="cs-btn" (click)="mostrarFormulario.set(!mostrarFormulario())">
+            {{ mostrarFormulario() ? 'Cerrar Editor de Campaña' : 'Crear Nueva Campaña' }}
+          </button>
+        }
       </div>
     </div>
 
@@ -218,7 +220,7 @@ export interface CampanaItem {
 export class PublicarNecesidadComponent implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly offlineSync = inject(OfflineSyncService);
-  private readonly authService = inject(AuthService);
+  readonly authService = inject(AuthService);
   private readonly DRAFT_KEY = 'cu03_nueva_campana';
 
   catalogos = signal<CatalogosGenerales | null>(null);

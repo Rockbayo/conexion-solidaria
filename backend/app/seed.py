@@ -1,6 +1,9 @@
 """
-Semilla (Seeder) de Catálogos Base y Usuarios Iniciales para la Sabana Norte de Cundinamarca.
-Garantiza integridad referencial en las 32 tablas de la Quinta Forma Normal (5FN).
+Semilla (Seeder) de Catálogos Base y los 4 Perfiles Operativos en Sabana Norte de Cundinamarca:
+- ADMIN (Administrador de la Plataforma)
+- REPRESENTANTE_OSAL (Administrador de Fundación OSAL)
+- DONANTE (Donante Solidario)
+- VOLUNTARIO (Voluntario Rural)
 """
 from datetime import date
 from werkzeug.security import generate_password_hash
@@ -16,14 +19,32 @@ from app.models import (
 
 def seed_initial_data():
     """Inserta datos maestros de la Sabana Norte y cuentas demostrativas si la BD está vacía."""
-    if Rol.query.first() is not None:
+    rol_admin = Rol.query.filter_by(codigo="ADMIN").first()
+    if rol_admin is not None:
+        # Asegurar que el usuario admin@conexion.org exista incluso en bases ya creadas
+        if not Usuario.query.filter_by(correo_electronico="admin@conexion.org").first():
+            u_admin = Usuario(
+                correo_electronico="admin@conexion.org",
+                hash_contrasena=generate_password_hash("Solidaria2026*"),
+                esta_activo=True
+            )
+            db.session.add(u_admin)
+            db.session.flush()
+            db.session.add(UsuarioRol(usuario_id=u_admin.id, rol_id=rol_admin.id))
+            db.session.add(Persona(
+                usuario_id=u_admin.id,
+                nombres="Coordinación General",
+                apellidos="Gobernanza Sabana Norte",
+                telefono_contacto="3100000001"
+            ))
+            db.session.commit()
         return
 
-    # 1. Roles del sistema
-    rol_admin = Rol(codigo="ADMIN", nombre="Administrador General", descripcion="Supervisión y validación de OSAL")
-    rol_osal = Rol(codigo="REPRESENTANTE_OSAL", nombre="Representante OSAL", descripcion="Gestión de fundación rural y campañas")
-    rol_donante = Rol(codigo="DONANTE", nombre="Donante Solidario", descripcion="Aportes económicos y en especie")
-    rol_voluntario = Rol(codigo="VOLUNTARIO", nombre="Voluntario Rural", descripcion="Postulación a labores comunitarias")
+    # 1. Roles del sistema (RBAC)
+    rol_admin = Rol(codigo="ADMIN", nombre="Administrador de Plataforma", descripcion="Gobernanza, auditoría y validación legal de OSAL")
+    rol_osal = Rol(codigo="REPRESENTANTE_OSAL", nombre="Administrador OSAL", descripcion="Gestión operativa de fundación rural, campañas y bodega")
+    rol_donante = Rol(codigo="DONANTE", nombre="Donante Solidario", descripcion="Registro de aportes económicos/especie y certificados tributarios")
+    rol_voluntario = Rol(codigo="VOLUNTARIO", nombre="Voluntario Rural", descripcion="Gestión de competencias y postulación a labores comunitarias")
     db.session.add_all([rol_admin, rol_osal, rol_donante, rol_voluntario])
     db.session.flush()
 
@@ -98,7 +119,12 @@ def seed_initial_data():
     db.session.add_all([hab_1, hab_2, hab_3, hab_4])
     db.session.flush()
 
-    # 7. Usuarios iniciales de prueba para CU01 y flujos posteriores
+    # 7. Usuarios iniciales para los 4 roles del sistema
+    user_admin = Usuario(
+        correo_electronico="admin@conexion.org",
+        hash_contrasena=generate_password_hash("Solidaria2026*"),
+        esta_activo=True
+    )
     user_osal = Usuario(
         correo_electronico="osal@sabananorte.org",
         hash_contrasena=generate_password_hash("Solidaria2026*"),
@@ -114,18 +140,18 @@ def seed_initial_data():
         hash_contrasena=generate_password_hash("Solidaria2026*"),
         esta_activo=True
     )
-    db.session.add_all([user_osal, user_donante, user_voluntario])
+    db.session.add_all([user_admin, user_osal, user_donante, user_voluntario])
     db.session.flush()
 
     db.session.add_all([
+        UsuarioRol(usuario_id=user_admin.id, rol_id=rol_admin.id),
         UsuarioRol(usuario_id=user_osal.id, rol_id=rol_osal.id),
         UsuarioRol(usuario_id=user_donante.id, rol_id=rol_donante.id),
         UsuarioRol(usuario_id=user_voluntario.id, rol_id=rol_voluntario.id),
     ])
 
-    # Direcciones y perfiles base
     dir_cogua = Direccion(
-        municipio_id=municipios_sabana[5].id,  # Cogua
+        municipio_id=municipios_sabana[5].id,
         vereda_o_barrio="Vereda Quebrada Honda",
         direccion_fisica="Km 4 Vía Neusa - Escuela Vieja",
         indicaciones_rurales="Frente al tanque comunitario de acueducto veredal",
@@ -133,7 +159,7 @@ def seed_initial_data():
         longitud=-73.9891
     )
     dir_tabio = Direccion(
-        municipio_id=municipios_sabana[3].id,  # Tabio
+        municipio_id=municipios_sabana[3].id,
         vereda_o_barrio="Vereda Lourdes",
         direccion_fisica="Finca El Manantial Lote 3",
         indicaciones_rurales="200m después del puente de piedra",
@@ -143,13 +169,15 @@ def seed_initial_data():
     db.session.add_all([dir_cogua, dir_tabio])
     db.session.flush()
 
+    p_admin = Persona(usuario_id=user_admin.id, direccion_id=dir_cogua.id, nombres="Coordinación General", apellidos="Gobernanza Sabana Norte", telefono_contacto="3100000001", fecha_nacimiento=date(1982, 4, 10))
     p_osal = Persona(usuario_id=user_osal.id, direccion_id=dir_cogua.id, nombres="María Elena", apellidos="Garzón Bello", telefono_contacto="3114509876", fecha_nacimiento=date(1979, 5, 14))
     p_donante = Persona(usuario_id=user_donante.id, direccion_id=dir_tabio.id, nombres="Carlos Andrés", apellidos="Suárez Rico", telefono_contacto="3108876543", fecha_nacimiento=date(1985, 8, 22))
     p_vol = Persona(usuario_id=user_voluntario.id, direccion_id=dir_tabio.id, nombres="Laura Valentina", apellidos="Chacón Vega", telefono_contacto="3152349988", fecha_nacimiento=date(1998, 2, 10))
-    db.session.add_all([p_osal, p_donante, p_vol])
+    db.session.add_all([p_admin, p_osal, p_donante, p_vol])
     db.session.flush()
 
     db.session.add_all([
+        DocumentoIdentidad(persona_id=p_admin.id, tipo_documento_id=td_cc.id, numero_documento="80100200"),
         DocumentoIdentidad(persona_id=p_osal.id, tipo_documento_id=td_cc.id, numero_documento="52418902"),
         DocumentoIdentidad(persona_id=p_donante.id, tipo_documento_id=td_cc.id, numero_documento="79845123"),
         DocumentoIdentidad(persona_id=p_vol.id, tipo_documento_id=td_cc.id, numero_documento="1072654981"),
@@ -170,6 +198,21 @@ def seed_initial_data():
     voluntario_demo = Voluntario(persona_id=p_vol.id, disponibilidad_horas_semana=8, biografia_corta="Ingeniera agrónoma comprometida con las huertas veredales.", dispuesto_desplazamiento_rural=True)
     db.session.add_all([fundacion_demo, donante_demo, voluntario_demo])
     db.session.flush()
+
+    db.session.add(DocumentoLegalOsal(
+        fundacion_id=fundacion_demo.id,
+        tipo_soporte="RUT_DIAN",
+        nombre_archivo="RUT_901458932-1.pdf",
+        url_archivo="/uploads/osal/1/RUT_901458932-1.pdf",
+        estado_revision="APROBADO"
+    ))
+
+    db.session.add(PerfilHabilidadVoluntario(
+        voluntario_id=voluntario_demo.id,
+        habilidad_id=hab_1.id,
+        nivel_dominio="AVANZADO",
+        anos_experiencia=4
+    ))
 
     campana_demo = Campana(
         fundacion_id=fundacion_demo.id,
@@ -192,4 +235,3 @@ def seed_initial_data():
     ])
 
     db.session.commit()
-

@@ -8,8 +8,14 @@ export const authGuard: CanActivateFn = (route) => {
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
 
-  // Durante SSR permitimos hidratación inicial en cliente antes de redirigir
   if (!isPlatformBrowser(platformId)) {
+    return true;
+  }
+
+  const permiteInvitado = route.data?.['permiteInvitado'] === true;
+  const rolesPermitidos = route.data?.['roles'] as string[] | undefined;
+
+  if (permiteInvitado && authService.tieneSesionOInvitado()) {
     return true;
   }
 
@@ -17,7 +23,6 @@ export const authGuard: CanActivateFn = (route) => {
     return router.createUrlTree(['/login']);
   }
 
-  const rolesPermitidos = route.data?.['roles'] as string[] | undefined;
   if (rolesPermitidos && rolesPermitidos.length > 0) {
     const usuario = authService.usuarioActual();
     const poseePermiso = usuario?.roles.some((rol) => rolesPermitidos.includes(rol));
@@ -30,4 +35,3 @@ export const authGuard: CanActivateFn = (route) => {
 
   return true;
 };
-

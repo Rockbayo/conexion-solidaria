@@ -1,132 +1,392 @@
-import { Component, inject, signal, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, inject, signal, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { OfflineSyncService, CatalogosGenerales } from '../../../core/services/offline-sync.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="sap-page-header">
       <div class="sap-page-header-inner">
         <div>
-          <span class="sap-breadcrumb">Seguridad y Control de Acceso</span>
-          <h1 class="sap-page-title">Portal de Autenticación Institucional</h1>
-          <p class="sap-page-subtitle">Acceso unificado para fundaciones rurales, donantes y voluntarios de la Sabana Norte.</p>
+          <span class="sap-breadcrumb">Seguridad Basada en Roles · Tríada CIA y Mínimo Privilegio</span>
+          <h1 class="sap-page-title">Portal de Control de Acceso e Identidad</h1>
+          <p class="sap-page-subtitle">
+            Identifícate según tu rol en la Sabana Norte (Voluntario, Donante, Administrador OSAL, Administrador General o Visitante).
+          </p>
+        </div>
+        <div class="header-actions">
+          <a routerLink="/registro-osal" class="sap-btn-secondary">
+            Radicar Nueva Fundación (OSAL)
+          </a>
+          <button type="button" class="sap-btn-secondary" (click)="ingresarComoInvitado()">
+            Explorar como Invitado (Solo Lectura)
+          </button>
         </div>
       </div>
     </div>
 
-    <main class="sap-container login-layout" aria-labelledby="login-heading">
-      <section class="cs-card login-panel">
-        <div class="panel-header">
-          <h2 id="login-heading">Credenciales de Usuario</h2>
-          <span class="sap-badge sap-badge-info">Sesión Cifrada JWT</span>
+    <main class="sap-container auth-workspace" aria-labelledby="auth-heading">
+      <div class="auth-tabs" role="tablist" aria-label="Opciones de acceso y registro">
+        <button
+          type="button"
+          role="tab"
+          class="auth-tab"
+          [class.active]="modoVista() === 'LOGIN'"
+          (click)="cambiarModo('LOGIN')"
+        >
+          1. Iniciar Sesión (Usuarios Registrados)
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="auth-tab"
+          [class.active]="modoVista() === 'REGISTRO_VOLUNTARIO'"
+          (click)="cambiarModo('REGISTRO_VOLUNTARIO')"
+        >
+          2. Inscribirme como Voluntario Rural
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="auth-tab"
+          [class.active]="modoVista() === 'REGISTRO_DONANTE'"
+          (click)="cambiarModo('REGISTRO_DONANTE')"
+        >
+          3. Registrarme como Donante Solidario
+        </button>
+      </div>
+
+      @if (mensajeConexionInestable()) {
+        <div class="cs-alert-human" role="alert">
+          {{ mensajeConexionInestable() }}
         </div>
+      }
 
-        @if (mensajeConexionInestable()) {
-          <div class="cs-alert-human" role="alert">
-            {{ mensajeConexionInestable() }}
-          </div>
-        }
-
-        @if (mensajeErrorHumano()) {
-          <div class="alert-error" role="alert">
-            {{ mensajeErrorHumano() }}
-          </div>
-        }
-
-        <form (ngSubmit)="procesarLogin()" class="login-form" novalidate>
-          <div class="form-group">
-            <label for="correo" class="sap-form-label">Correo electrónico corporativo o personal</label>
-            <input
-              id="correo"
-              name="correo"
-              type="email"
-              class="sap-input"
-              [(ngModel)]="correoElectronico"
-              placeholder="usuario@organizacion.org"
-              required
-              autocomplete="email"
-            />
-          </div>
-
-          <div class="form-group">
-            <label for="contrasena" class="sap-form-label">Clave de seguridad</label>
-            <input
-              id="contrasena"
-              name="contrasena"
-              type="password"
-              class="sap-input"
-              [(ngModel)]="contrasena"
-              placeholder="••••••••••••"
-              required
-              autocomplete="current-password"
-            />
-          </div>
-
-          <button type="submit" class="cs-btn btn-block" [disabled]="cargando()">
-            {{ cargando() ? 'Validando credenciales...' : 'Iniciar Sesión' }}
-          </button>
-        </form>
-
-        <div class="quick-profiles" aria-label="Perfiles preconfigurados del entorno">
-          <div class="quick-header">
-            <h3>Selección Rápida de Rol Operativo</h3>
-            <p>Carga automática de perfiles de verificación para la Sabana Norte:</p>
-          </div>
-          <div class="profile-grid">
-            <button type="button" class="sap-btn-secondary" (click)="cargarDemo('osal@sabananorte.org')">
-              Representante OSAL · Cogua
-            </button>
-            <button type="button" class="sap-btn-secondary" (click)="cargarDemo('donante@conexion.org')">
-              Donante · Tabio
-            </button>
-            <button type="button" class="sap-btn-secondary" (click)="cargarDemo('voluntario@conexion.org')">
-              Voluntario Rural
-            </button>
-          </div>
+      @if (mensajeErrorHumano()) {
+        <div class="alert-error" role="alert">
+          {{ mensajeErrorHumano() }}
         </div>
-      </section>
+      }
+
+      @if (modoVista() === 'LOGIN') {
+        <div class="login-split-grid">
+          <section class="cs-card login-panel">
+            <div class="panel-header">
+              <h2 id="auth-heading">Autenticación con Credenciales</h2>
+              <span class="sap-badge sap-badge-info">JWT HS256 + Hash Criptográfico</span>
+            </div>
+
+            <form (ngSubmit)="procesarLogin()" novalidate>
+              <div class="form-group">
+                <label for="correo" class="sap-form-label">Correo electrónico registrado</label>
+                <input
+                  id="correo"
+                  name="correo"
+                  type="email"
+                  class="sap-input"
+                  [(ngModel)]="correoElectronico"
+                  placeholder="usuario@conexion.org"
+                  required
+                  autocomplete="email"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="contrasena" class="sap-form-label">Clave de acceso</label>
+                <input
+                  id="contrasena"
+                  name="contrasena"
+                  type="password"
+                  class="sap-input"
+                  [(ngModel)]="contrasena"
+                  placeholder="••••••••••••"
+                  required
+                  autocomplete="current-password"
+                />
+              </div>
+
+              <button type="submit" class="cs-btn btn-block" [disabled]="cargando()">
+                {{ cargando() ? 'Verificando identidad y permisos...' : 'Ingresar a mi Espacio de Trabajo' }}
+              </button>
+            </form>
+          </section>
+
+          <section class="cs-card rbac-selector-panel" aria-label="Simulador de roles y principio de mínimo privilegio">
+            <div class="panel-header">
+              <h2>Perfiles Operativos (Principio de Mínimo Privilegio)</h2>
+              <span class="sap-badge sap-badge-ok">4 Roles Activos</span>
+            </div>
+            <p class="helper-desc">
+              Selecciona cualquiera de los 4 actores institucionales para cargar sus credenciales y verificar cómo cambia la interfaz según sus privilegios exclusivos:
+            </p>
+
+            <div class="role-cards-list">
+              <article class="role-option-card" (click)="cargarDemo('admin@conexion.org')">
+                <div class="role-top">
+                  <strong>Administrador de la Plataforma</strong>
+                  <span class="sap-badge sap-badge-info">ROL: ADMIN</span>
+                </div>
+                <p>Aprueba o rechaza fundaciones OSAL pendientes, valida RUT/Cámara de Comercio y audita la bitácora global de seguridad.</p>
+                <span class="role-cta">Cargar cuenta: admin&#64;conexion.org →</span>
+              </article>
+
+              <article class="role-option-card" (click)="cargarDemo('osal@sabananorte.org')">
+                <div class="role-top">
+                  <strong>Administrador de Fundación (OSAL)</strong>
+                  <span class="sap-badge sap-badge-ok">ROL: REPRESENTANTE_OSAL</span>
+                </div>
+                <p>Consulta su Tablero de Control, publica nuevas campañas/necesidades y actualiza la trazabilidad logística en bodega.</p>
+                <span class="role-cta">Cargar cuenta: osal&#64;sabananorte.org →</span>
+              </article>
+
+              <article class="role-option-card" (click)="cargarDemo('voluntario@conexion.org')">
+                <div class="role-top">
+                  <strong>Voluntario Rural Registrado</strong>
+                  <span class="sap-badge sap-badge-ok">ROL: VOLUNTARIO</span>
+                </div>
+                <p>Configura su matriz de competencias técnicas/agrícolas, define horas semanales y se postula a labores veredales.</p>
+                <span class="role-cta">Cargar cuenta: voluntario&#64;conexion.org →</span>
+              </article>
+
+              <article class="role-option-card" (click)="cargarDemo('donante@conexion.org')">
+                <div class="role-top">
+                  <strong>Donante Solidario Registrado</strong>
+                  <span class="sap-badge sap-badge-info">ROL: DONANTE</span>
+                </div>
+                <p>Registra aportes monetarios o en especie, adjunta comprobantes y descarga sus Certificados Tributarios en PDF.</p>
+                <span class="role-cta">Cargar cuenta: donante&#64;conexion.org →</span>
+              </article>
+            </div>
+          </section>
+        </div>
+      } @else {
+        <!-- FORMULARIO DE AUTO-REGISTRO DE VOLUNTARIO O DONANTE EN LA PÁGINA -->
+        <section class="cs-card registro-panel">
+          <div class="panel-header">
+            <div>
+              <h2>
+                {{ modoVista() === 'REGISTRO_VOLUNTARIO'
+                  ? 'Formulario de Inscripción de Nuevo Voluntario Rural'
+                  : 'Formulario de Registro de Nuevo Donante Solidario' }}
+              </h2>
+              <p class="sub-note">
+                Al completar este registro se creará tu identidad verificada con el rol exclusivo de
+                <strong>{{ modoVista() === 'REGISTRO_VOLUNTARIO' ? 'VOLUNTARIO' : 'DONANTE' }}</strong> (Principio de Mínimo Privilegio).
+              </p>
+            </div>
+            <span class="sap-badge sap-badge-ok">Alta Inmediata 5FN</span>
+          </div>
+
+          <form (ngSubmit)="procesarRegistroCiudadano()" novalidate>
+            <div class="grid-3">
+              <div class="form-group">
+                <label for="reg_nombres" class="sap-form-label">Nombres *</label>
+                <input id="reg_nombres" name="reg_nombres" type="text" class="sap-input" [(ngModel)]="regForm.nombres" required />
+              </div>
+              <div class="form-group">
+                <label for="reg_apellidos" class="sap-form-label">Apellidos *</label>
+                <input id="reg_apellidos" name="reg_apellidos" type="text" class="sap-input" [(ngModel)]="regForm.apellidos" required />
+              </div>
+              <div class="form-group">
+                <label for="reg_tel" class="sap-form-label">Teléfono / Celular *</label>
+                <input id="reg_tel" name="reg_tel" type="tel" class="sap-input" [(ngModel)]="regForm.telefono_contacto" placeholder="Ej: 3158901234" required />
+              </div>
+            </div>
+
+            <div class="grid-3">
+              <div class="form-group">
+                <label for="reg_td" class="sap-form-label">Tipo de Documento *</label>
+                <select id="reg_td" name="reg_td" class="sap-input" [(ngModel)]="regForm.tipo_documento_id">
+                  @for (td of catalogos()?.tipos_documento || []; track td.id) {
+                    <option [ngValue]="td.id">{{ td.sigla }} · {{ td.nombre }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="reg_num_doc" class="sap-form-label">Número de Identificación *</label>
+                <input id="reg_num_doc" name="reg_num_doc" type="text" class="sap-input" [(ngModel)]="regForm.numero_documento" required />
+              </div>
+              <div class="form-group">
+                <label for="reg_mun" class="sap-form-label">Municipio en Sabana Norte *</label>
+                <select id="reg_mun" name="reg_mun" class="sap-input" [(ngModel)]="regForm.municipio_id">
+                  @for (m of catalogos()?.municipios_sabana_norte || []; track m.id) {
+                    <option [ngValue]="m.id">{{ m.nombre }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="reg_vereda" class="sap-form-label">Vereda o Barrio de Residencia *</label>
+                <input id="reg_vereda" name="reg_vereda" type="text" class="sap-input" [(ngModel)]="regForm.vereda_o_barrio" placeholder="Ej: Vereda Fagua / Centro" required />
+              </div>
+              <div class="form-group">
+                <label for="reg_dir" class="sap-form-label">Dirección Física *</label>
+                <input id="reg_dir" name="reg_dir" type="text" class="sap-input" [(ngModel)]="regForm.direccion_fisica" required />
+              </div>
+            </div>
+
+            @if (modoVista() === 'REGISTRO_VOLUNTARIO') {
+              <div class="role-specific-box">
+                <h3>Perfil Operativo del Voluntario (Tablas: voluntarios y perfil_habilidades_voluntario)</h3>
+                <div class="grid-3">
+                  <div class="form-group">
+                    <label for="reg_hab" class="sap-form-label">Habilidad Principal Inicial *</label>
+                    <select id="reg_hab" name="reg_hab" class="sap-input" [(ngModel)]="regForm.habilidad_inicial_id">
+                      @for (h of catalogos()?.habilidades || []; track h.id) {
+                        <option [ngValue]="h.id">{{ h.nombre }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="reg_nivel" class="sap-form-label">Nivel de Dominio *</label>
+                    <select id="reg_nivel" name="reg_nivel" class="sap-input" [(ngModel)]="regForm.nivel_dominio">
+                      <option value="BASICO">Básico / Aprendiz</option>
+                      <option value="INTERMEDIO">Intermedio / Autónomo</option>
+                      <option value="AVANZADO">Avanzado / Formador</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="reg_horas" class="sap-form-label">Horas Disponibles por Semana *</label>
+                    <input id="reg_horas" name="reg_horas" type="number" min="2" max="48" class="sap-input" [(ngModel)]="regForm.disponibilidad_horas_semana" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="reg_bio" class="sap-form-label">Presentación o Vocación de Servicio Rural</label>
+                  <input id="reg_bio" name="reg_bio" type="text" class="sap-input" [(ngModel)]="regForm.biografia_corta" placeholder="Cuéntanos cómo deseas apoyar a las comunidades rurales..." />
+                </div>
+              </div>
+            } @else {
+              <div class="role-specific-box">
+                <h3>Perfil Tributario del Donante (Tabla: donantes)</h3>
+                <div class="grid-2">
+                  <div class="form-group">
+                    <label for="reg_tipo_don" class="sap-form-label">Categoría de Aportante *</label>
+                    <select id="reg_tipo_don" name="reg_tipo_don" class="sap-input" [(ngModel)]="regForm.tipo_donante">
+                      <option value="PERSONA_NATURAL">Persona Natural</option>
+                      <option value="EMPRESA">Persona Jurídica / Empresa Solidaria</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="reg_emp" class="sap-form-label">Organización o Empresa (Opcional)</label>
+                    <input id="reg_emp" name="reg_emp" type="text" class="sap-input" [(ngModel)]="regForm.empresa_organizacion" placeholder="Nombre de empresa si aplica" />
+                  </div>
+                </div>
+              </div>
+            }
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="reg_correo" class="sap-form-label">Correo Electrónico de Acceso *</label>
+                <input id="reg_correo" name="reg_correo" type="email" class="sap-input" [(ngModel)]="regForm.correo_electronico" required />
+              </div>
+              <div class="form-group">
+                <label for="reg_pass" class="sap-form-label">Crear Contraseña Segura (Mínimo 6 caracteres) *</label>
+                <input id="reg_pass" name="reg_pass" type="password" class="sap-input" [(ngModel)]="regForm.contrasena" required />
+              </div>
+            </div>
+
+            <div class="reg-actions">
+              <button type="button" class="sap-btn-secondary" (click)="cambiarModo('LOGIN')">
+                Volver a Inicio de Sesión
+              </button>
+              <button type="submit" class="cs-btn" [disabled]="cargando()">
+                {{ cargando() ? 'Creando cuenta...' : 'Completar Registro e Ingresar' }}
+              </button>
+            </div>
+          </form>
+        </section>
+      }
     </main>
   `,
   styles: [`
-    .login-layout {
-      display: flex;
-      justify-content: center;
-      padding-top: 1rem;
+    .header-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
     }
-    .login-panel {
-      width: 100%;
-      max-width: 520px;
-      border-top: 4px solid var(--sap-brand-primary);
+    .auth-tab {
+      min-height: 48px;
+      padding: 0.75rem 1rem;
+      font-size: 0.92rem;
+      font-weight: 700;
+      background: var(--sap-bg-surface);
+      color: var(--sap-text-secondary);
+      border: 1px solid var(--sap-border-subtle);
+      border-bottom: 3px solid var(--sap-border-subtle);
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .auth-tab.active {
+      color: var(--sap-brand-primary);
+      border-bottom-color: var(--sap-brand-primary);
+      background: #F8FAFC;
+    }
+    .login-split-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.25fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 920px) {
+      .login-split-grid { grid-template-columns: 1fr; }
+    }
+    .login-panel, .rbac-selector-panel, .registro-panel {
+      border-top: 3px solid var(--sap-brand-primary);
     }
     .panel-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      padding-bottom: 1rem;
-      margin-bottom: 1.25rem;
+      align-items: flex-start;
+      gap: 1rem;
+      padding-bottom: 0.85rem;
+      margin-bottom: 1.15rem;
       border-bottom: 1px solid var(--sap-border-subtle);
     }
-    .panel-header h2 {
-      margin: 0;
-      font-size: 1.15rem;
+    .panel-header h2 { margin: 0; font-size: 1.15rem; }
+    .sub-note { margin: 0.25rem 0 0 0; font-size: 0.86rem; color: var(--sap-text-secondary); }
+    .helper-desc { margin: 0 0 1rem 0; font-size: 0.88rem; color: var(--sap-text-secondary); }
+    .role-cards-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .role-option-card {
+      padding: 0.85rem 1rem;
+      border: 1px solid var(--sap-border-subtle);
+      border-left: 4px solid var(--sap-brand-primary);
+      border-radius: 6px;
+      background: var(--sap-bg-canvas);
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.12s ease;
     }
-    .form-group {
-      margin-bottom: 1.15rem;
+    .role-option-card:hover {
+      background: #E8F1FF;
+      transform: translateX(3px);
     }
-    .btn-block {
-      width: 100%;
-      margin-top: 0.4rem;
+    .role-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+    .role-option-card p { margin: 0 0 0.4rem 0; font-size: 0.84rem; color: var(--sap-text-secondary); }
+    .role-cta { font-size: 0.8rem; font-weight: 700; color: var(--sap-brand-primary); }
+    .form-group { margin-bottom: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .role-specific-box {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      background: var(--sap-bg-canvas);
+      border: 1px solid var(--sap-border-subtle);
+      border-radius: 6px;
     }
+    .role-specific-box h3 { margin: 0 0 0.85rem 0; font-size: 0.95rem; color: var(--sap-brand-primary); }
+    .reg-actions { display: flex; justify-content: space-between; align-items: center; padding-top: 1rem; border-top: 1px solid var(--sap-border-subtle); }
+    .btn-block { width: 100%; margin-top: 0.5rem; }
     .alert-error {
       border-left: 4px solid var(--sap-status-err-border);
-      border-top: 1px solid var(--sap-status-err-border);
-      border-right: 1px solid var(--sap-status-err-border);
-      border-bottom: 1px solid var(--sap-status-err-border);
       background-color: var(--sap-status-err-bg);
       color: var(--sap-status-err-text);
       padding: 0.85rem 1rem;
@@ -134,31 +394,16 @@ import { AuthService } from '../../../core/services/auth.service';
       font-weight: 600;
       margin-bottom: 1.15rem;
     }
-    .quick-profiles {
-      margin-top: 1.75rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid var(--sap-border-subtle);
-    }
-    .quick-header h3 {
-      margin: 0 0 0.2rem 0;
-      font-size: 0.95rem;
-    }
-    .quick-header p {
-      margin: 0 0 0.85rem 0;
-      font-size: 0.85rem;
-      color: var(--sap-text-secondary);
-    }
-    .profile-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-      gap: 0.6rem;
-    }
   `]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly offlineSync = inject(OfflineSyncService);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
+
+  modoVista = signal<'LOGIN' | 'REGISTRO_VOLUNTARIO' | 'REGISTRO_DONANTE'>('LOGIN');
+  catalogos = signal<CatalogosGenerales | null>(null);
 
   correoElectronico = '';
   contrasena = '';
@@ -166,10 +411,43 @@ export class LoginComponent {
   mensajeErrorHumano = signal('');
   mensajeConexionInestable = signal('');
 
+  regForm = {
+    nombres: '',
+    apellidos: '',
+    telefono_contacto: '',
+    tipo_documento_id: 1,
+    numero_documento: '',
+    municipio_id: 6,
+    vereda_o_barrio: 'Vereda Centro Rural',
+    direccion_fisica: 'Km 2 Vía Principal',
+    correo_electronico: '',
+    contrasena: '',
+    disponibilidad_horas_semana: 8,
+    habilidad_inicial_id: 1,
+    nivel_dominio: 'INTERMEDIO',
+    biografia_corta: 'Voluntario comprometido con las comunidades de la Sabana Norte.',
+    tipo_donante: 'PERSONA_NATURAL',
+    empresa_organizacion: '',
+  };
+
+  ngOnInit(): void {
+    this.offlineSync.obtenerCatalogos().subscribe((cat) => this.catalogos.set(cat));
+  }
+
+  cambiarModo(modo: 'LOGIN' | 'REGISTRO_VOLUNTARIO' | 'REGISTRO_DONANTE'): void {
+    this.modoVista.set(modo);
+    this.mensajeErrorHumano.set('');
+  }
+
   cargarDemo(correo: string): void {
+    this.modoVista.set('LOGIN');
     this.correoElectronico = correo;
     this.contrasena = 'Solidaria2026*';
     this.mensajeErrorHumano.set('');
+  }
+
+  ingresarComoInvitado(): void {
+    this.authService.activarModoInvitado();
   }
 
   procesarLogin(): void {
@@ -192,7 +470,7 @@ export class LoginComponent {
     this.authService.iniciarSesion(this.correoElectronico, this.contrasena).subscribe({
       next: () => {
         this.cargando.set(false);
-        this.router.navigate(['/panel']);
+        this.router.navigate([this.authService.rutaInicioPorRol()]);
       },
       error: (err) => {
         this.cargando.set(false);
@@ -205,6 +483,30 @@ export class LoginComponent {
             err.error?.mensaje_humano || 'No pudimos verificar tus datos en este momento. Intenta nuevamente.'
           );
         }
+      },
+    });
+  }
+
+  procesarRegistroCiudadano(): void {
+    this.mensajeErrorHumano.set('');
+    this.cargando.set(true);
+
+    const tipo_actor = this.modoVista() === 'REGISTRO_VOLUNTARIO' ? 'VOLUNTARIO' : 'DONANTE';
+    const payload = {
+      ...this.regForm,
+      tipo_actor,
+    };
+
+    this.authService.registrarCiudadano(payload).subscribe({
+      next: () => {
+        this.cargando.set(false);
+        this.router.navigate([this.authService.rutaInicioPorRol()]);
+      },
+      error: (err) => {
+        this.cargando.set(false);
+        this.mensajeErrorHumano.set(
+          err.error?.mensaje_humano || 'No se pudo completar el registro. Verifica los datos ingresados.'
+        );
       },
     });
   }

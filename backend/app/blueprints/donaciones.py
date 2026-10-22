@@ -10,10 +10,11 @@ import hashlib
 from datetime import datetime, timezone
 from decimal import Decimal
 from flask import Blueprint, request, jsonify, send_file
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, get_jwt
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from app.extensions import db
+from app.security import requiere_roles
 from app.models import (
     Donante, Campana, AporteTransaccional, DonacionEconomica, DonacionEspecie,
     TrazabilidadEntrega, ReciboTributario, MetodoPago, UnidadMedida, LogAuditoria
@@ -85,18 +86,19 @@ def listar_donaciones():
 
 
 @donaciones_bp.route("", methods=["POST"])
-@jwt_required(optional=True)
+@requiere_roles("DONANTE", "ADMIN")
 def registrar_donacion():
     """
-    CU04: Registra un aporte del donante (Económico o en Especie) junto con su comprobante.
-    Actualiza los montos de la campaña y crea el recibo tributario o el primer hito logístico ('RECIBIDO').
+    Exclusivo para DONANTE o ADMIN (Mínimo Privilegio):
+    Registra un aporte del donante autenticado junto con su comprobante.
     """
     data = request.get_json(silent=True) or {}
     identidad = get_jwt_identity()
+    claims = get_jwt()
     usuario_id = int(identidad) if identidad else None
 
     campana_id = data.get("campana_id") or 1
-    donante_id = data.get("donante_id")
+    donante_id = claims.get("donante_id") or data.get("donante_id")
     modalidad = (data.get("modalidad") or "ECONOMICA").upper()
     nombre_comprobante = (data.get("nombre_comprobante") or "comprobante_aporte.pdf").strip()
     observaciones = (data.get("observaciones") or "").strip()
@@ -305,7 +307,7 @@ def descargar_certificado_tributario_pdf(donacion_economica_id: int):
 
 
 @donaciones_bp.route("/especie/<int:donacion_especie_id>/trazabilidad", methods=["PUT", "POST"])
-@jwt_required(optional=True)
+@requiere_roles("REPRESENTANTE_OSAL", "ADMIN")
 def actualizar_trazabilidad_logistica(donacion_especie_id: int):
     """
     CU09 - Trazabilidad Logística:

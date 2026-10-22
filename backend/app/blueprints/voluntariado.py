@@ -5,8 +5,9 @@ Blueprint de Voluntariado y Asignaciones (5FN):
 """
 from decimal import Decimal
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, get_jwt
 from app.extensions import db
+from app.security import requiere_roles
 from app.models import (
     Voluntario, Habilidad, PerfilHabilidadVoluntario,
     NecesidadCampana, PostulacionVoluntariado, AsignacionActividad, LogAuditoria
@@ -73,17 +74,18 @@ def listar_labores_voluntariado():
 
 
 @voluntariado_bp.route("/postular", methods=["POST"])
-@jwt_required(optional=True)
+@requiere_roles("VOLUNTARIO", "ADMIN")
 def postular_a_labor():
     """
-    CU05: Registra la postulación de un voluntario a una labor específica (necesidad_campana_id),
-    genera la asignación inicial en asignaciones_actividades y actualiza las horas comprometidas.
+    Exclusivo para VOLUNTARIO o ADMIN (Mínimo Privilegio):
+    Registra la postulación de un voluntario autenticado a una labor específica.
     """
     data = request.get_json(silent=True) or {}
     identidad = get_jwt_identity()
+    claims = get_jwt()
     usuario_id = int(identidad) if identidad else None
 
-    voluntario_id = data.get("voluntario_id")
+    voluntario_id = claims.get("voluntario_id") or data.get("voluntario_id")
     necesidad_id = data.get("necesidad_campana_id")
     motivacion = (data.get("motivacion") or "").strip()
     disponibilidad = (data.get("disponibilidad_propuesta") or "Fines de semana en la mañana").strip()
@@ -188,17 +190,18 @@ def obtener_perfil_habilidades():
 
 
 @voluntariado_bp.route("/perfil-habilidades", methods=["POST", "PUT"])
-@jwt_required(optional=True)
+@requiere_roles("VOLUNTARIO", "ADMIN")
 def actualizar_perfil_habilidades():
     """
-    CU10: Permite al voluntario actualizar su disponibilidad rural, agregar una nueva
-    competencia (o actualizar su nivel de dominio y años de experiencia en 5FN).
+    Exclusivo para VOLUNTARIO o ADMIN (Mínimo Privilegio):
+    Permite al voluntario actualizar su disponibilidad rural y competencias en 5FN.
     """
     data = request.get_json(silent=True) or {}
     identidad = get_jwt_identity()
+    claims = get_jwt()
     usuario_id = int(identidad) if identidad else None
 
-    voluntario_id = data.get("voluntario_id")
+    voluntario_id = claims.get("voluntario_id") or data.get("voluntario_id")
     voluntario = db.session.get(Voluntario, int(voluntario_id)) if voluntario_id else Voluntario.query.first()
 
     if not voluntario:
@@ -254,6 +257,7 @@ def actualizar_perfil_habilidades():
 
 
 @voluntariado_bp.route("/perfil-habilidades/<int:registro_id>", methods=["DELETE"])
+@requiere_roles("VOLUNTARIO", "ADMIN")
 def eliminar_habilidad_voluntario(registro_id: int):
     rel = db.session.get(PerfilHabilidadVoluntario, registro_id)
     if not rel:
