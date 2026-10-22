@@ -35,24 +35,19 @@ def requiere_roles(*roles_permitidos: str):
             if roles_permitidos and not roles_usuario.intersection(set(roles_permitidos)):
                 db.session.add(LogAuditoria(
                     usuario_id=usuario_id,
-                    accion="ACCESO_DENEGADO_MINIMO_PRIVILEGIO",
+                    accion="ACCESO_RESTRINGIDO",
                     entidad_afectada=request.path,
                     registro_id=None,
-                    detalle=(
-                        f"Bloqueado por Mínimo Privilegio. Roles usuario: {list(roles_usuario)} | "
-                        f"Roles requeridos: {list(roles_permitidos)}"
-                    ),
+                    detalle="Intento de acceso a sección no habilitada para el perfil actual.",
                     direccion_ip=request.remote_addr
                 ))
                 db.session.commit()
                 return jsonify({
-                    "error": "Permisos insuficientes (Principio de Mínimo Privilegio)",
-                    "mensaje_humano": (
-                        f"Tu perfil actual ({', '.join(roles_usuario) or 'Sin rol'}) no tiene privilegios "
-                        f"para ejecutar esta operación exclusiva de: {', '.join(roles_permitidos)}."
-                    )
+                    "error": "Permisos insuficientes",
+                    "mensaje_humano": "Tu cuenta actual no tiene habilitada esta función. Si necesitas realizar esta acción, ingresa con el perfil correspondiente."
                 }), 403
 
             return fn(*args, **kwargs)
         return decorator
     return wrapper
+

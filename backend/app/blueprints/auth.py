@@ -103,10 +103,10 @@ def login():
 
     db.session.add(LogAuditoria(
         usuario_id=usuario.id,
-        accion="LOGIN_EXITOSO",
+        accion="INGRESO_AL_SISTEMA",
         entidad_afectada="usuarios",
         registro_id=usuario.id,
-        detalle=f"Inicio de sesión exitoso con rol(es) de mínimo privilegio: {', '.join(roles)}",
+        detalle="Inicio de sesión exitoso en la plataforma.",
         direccion_ip=request.remote_addr
     ))
     db.session.commit()
@@ -151,8 +151,8 @@ def registrar_ciudadano():
 
     if len(contrasena) < 6:
         return jsonify({
-            "error": "Contraseña débil",
-            "mensaje_humano": "Por seguridad (Confidencialidad), la contraseña debe tener al menos 6 caracteres."
+            "error": "Contraseña corta",
+            "mensaje_humano": "Por favor escribe una contraseña de al menos 6 caracteres."
         }), 400
 
     if Usuario.query.filter_by(correo_electronico=correo).first():
@@ -248,10 +248,10 @@ def registrar_ciudadano():
 
     db.session.add(LogAuditoria(
         usuario_id=nuevo_usuario.id,
-        accion=f"AUTOREGISTRO_{tipo_actor}",
+        accion=f"REGISTRO_{tipo_actor}",
         entidad_afectada="usuarios",
         registro_id=nuevo_usuario.id,
-        detalle=f"Registro ciudadano completado con rol de mínimo privilegio {tipo_actor} en {municipio.nombre}.",
+        detalle=f"Inscripción completada como {tipo_actor.lower()} en {municipio.nombre}.",
         direccion_ip=request.remote_addr
     ))
 

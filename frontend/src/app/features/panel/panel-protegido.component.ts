@@ -33,14 +33,14 @@ interface FundacionExpediente {
       <div class="sap-page-header">
         <div class="sap-page-header-inner">
           <div>
-            <span class="sap-breadcrumb">Gobernanza de Seguridad · Tríada CIA y Mínimo Privilegio</span>
+            <span class="sap-breadcrumb">Mi Cuenta Personal</span>
             <h1 class="sap-page-title">{{ usuario.nombre_mostrar }}</h1>
             <p class="sap-page-subtitle">
-              Perfil Autenticado: <strong>{{ authService.etiquetaRolPrincipal() }}</strong> · Rol Técnico: {{ usuario.roles.join(', ') }}
+              Perfil activo: <strong>{{ authService.etiquetaRolPrincipal() }}</strong>
             </p>
           </div>
           <button type="button" class="sap-btn-secondary btn-logout" (click)="authService.cerrarSesion()">
-            Cerrar Sesión Segura
+            Cerrar Sesión
           </button>
         </div>
       </div>
@@ -48,7 +48,7 @@ interface FundacionExpediente {
       <main class="sap-container">
         @if (avisoRestringido()) {
           <div class="cs-alert-human" role="alert">
-            Principio de Mínimo Privilegio: Tu rol actual ({{ usuario.roles.join(', ') }}) no tiene autorización para acceder al módulo solicitado. Se ha registrado el evento en auditoría.
+            Esta sección corresponde a otro tipo de perfil dentro de la plataforma. Te hemos traído a tu página principal.
           </div>
         }
 
@@ -56,15 +56,14 @@ interface FundacionExpediente {
           <div class="alert-ok" role="status">{{ mensajeAdmin() }}</div>
         }
 
-        <!-- SECCIÓN EXCLUSIVA DEL ADMINISTRADOR DE LA PLATAFORMA (ROL: ADMIN) -->
         @if (authService.tieneRol('ADMIN')) {
-          <section class="cs-card admin-gov-card" aria-label="Bandeja de aprobación de fundaciones OSAL">
+          <section class="cs-card admin-gov-card" aria-label="Solicitudes de fundaciones pendientes de revisión">
             <div class="card-head">
               <div>
-                <h2>Bandeja de Gobernanza: Validación Legal de Fundaciones OSAL</h2>
-                <p class="sub-head">Facultad exclusiva del Administrador General para verificar soportes legales (RUT / Cámara de Comercio) y habilitar OSAL en Sabana Norte.</p>
+                <h2>Revisión y Aprobación de Fundaciones (OSAL)</h2>
+                <p class="sub-head">Verifica los documentos adjuntos de cada organización para habilitar su operación en la Sabana Norte.</p>
               </div>
-              <span class="sap-badge sap-badge-info">Privilegio: ADMIN</span>
+              <span class="sap-badge sap-badge-info">Coordinación General</span>
             </div>
 
             <div class="osal-approval-list">
@@ -98,7 +97,7 @@ interface FundacionExpediente {
                       [disabled]="f.estado_validacion === 'APROBADA'"
                       (click)="cambiarEstadoOsal(f.id, 'APROBADA')"
                     >
-                      Aprobar OSAL
+                      Aprobar Fundación
                     </button>
                     <button
                       type="button"
@@ -115,11 +114,11 @@ interface FundacionExpediente {
           </section>
         }
 
-        <section class="sap-grid" aria-label="Ficha de identidad y bitácora de auditoría">
+        <section class="sap-grid" aria-label="Información de mi cuenta y actividad reciente">
           <article class="cs-card sap-object-card">
             <div class="card-head">
-              <h2>Matriz de Identidad y Mínimo Privilegio</h2>
-              <span class="sap-badge sap-badge-ok">Sesión Verificada</span>
+              <h2>Datos de mi Cuenta</h2>
+              <span class="sap-badge sap-badge-ok">Activa</span>
             </div>
 
             <div class="kv-grid">
@@ -128,30 +127,30 @@ interface FundacionExpediente {
                 <strong class="kv-value">{{ usuario.correo_electronico }}</strong>
               </div>
               <div class="kv-item">
-                <span class="kv-label">Rol de Seguridad (RBAC)</span>
+                <span class="kv-label">Tipo de Usuario</span>
                 <strong class="kv-value">{{ authService.etiquetaRolPrincipal() }}</strong>
               </div>
               <div class="kv-item">
-                <span class="kv-label">Alcance de Permisos</span>
+                <span class="kv-label">Acciones Disponibles</span>
                 <strong class="kv-value">
                   @if (authService.tieneRol('ADMIN')) {
-                    Gobernanza Global, Aprobación OSAL y Auditoría Total
+                    Aprobación de fundaciones y supervisión regional
                   } @else if (authService.tieneRol('REPRESENTANTE_OSAL')) {
-                    Gestión de Campañas, Dashboard y Logística de su OSAL
+                    Publicación de campañas, indicadores y entrega de ayudas
                   } @else if (authService.tieneRol('VOLUNTARIO')) {
-                    Postulación a Labores y Matriz de Competencias
+                    Postulación a jornadas comunitarias y registro de habilidades
                   } @else if (authService.tieneRol('DONANTE')) {
-                    Radicación de Aportes y Descarga de Certificados PDF
+                    Registro de donaciones y descarga de certificados en PDF
                   }
                 </strong>
               </div>
               <div class="kv-item">
-                <span class="kv-label">Vínculo Relacional (5FN)</span>
+                <span class="kv-label">Organización o Perfil Asociado</span>
                 <strong class="kv-value">
                   {{ usuario.fundacion_nombre ? usuario.fundacion_nombre + ' (' + usuario.fundacion_estado + ')' : '' }}
-                  {{ usuario.donante_id ? 'Registro Donante #' + usuario.donante_id : '' }}
-                  {{ usuario.voluntario_id ? 'Registro Voluntario #' + usuario.voluntario_id : '' }}
-                  {{ authService.tieneRol('ADMIN') ? 'Supervisión Sabana Norte' : '' }}
+                  {{ usuario.donante_id ? 'Donante Solidario Registrado' : '' }}
+                  {{ usuario.voluntario_id ? 'Voluntario Comunitario Registrado' : '' }}
+                  {{ authService.tieneRol('ADMIN') ? 'Coordinación Sabana Norte' : '' }}
                 </strong>
               </div>
             </div>
@@ -159,14 +158,12 @@ interface FundacionExpediente {
 
           <article class="cs-card sap-object-card">
             <div class="card-head">
-              <h2>Bitácora Inmutable de Auditoría (Integridad CIA)</h2>
-              <span class="sap-badge sap-badge-info">
-                {{ authService.tieneRol('ADMIN') ? 'Vista Global de Plataforma' : 'Eventos de mi Cuenta' }}
-              </span>
+              <h2>Actividad Reciente en la Plataforma</h2>
+              <span class="sap-badge sap-badge-info">Historial</span>
             </div>
 
             @if (auditoria().length === 0) {
-              <p class="empty-note">Consultando historial de eventos de seguridad...</p>
+              <p class="empty-note">Cargando actividad reciente...</p>
             } @else {
               <div class="audit-table">
                 @for (evento of auditoria(); track evento.id) {
@@ -177,7 +174,7 @@ interface FundacionExpediente {
                         [class.sap-badge-ok]="!evento.accion.includes('FALLIDO') && !evento.accion.includes('DENEGADO')"
                         [class.sap-badge-warn]="evento.accion.includes('FALLIDO') || evento.accion.includes('DENEGADO')"
                       >
-                        {{ evento.accion }}
+                        {{ formatearAccion(evento.accion) }}
                       </span>
                       <span class="audit-detail">{{ evento.detalle }}</span>
                     </div>
@@ -260,6 +257,10 @@ export class PanelProtegidoComponent implements OnInit {
     if (this.authService.tieneRol('ADMIN')) {
       this.cargarFundacionesParaGobernanza();
     }
+  }
+
+  formatearAccion(accion: string): string {
+    return accion.replace(/_/g, ' ');
   }
 
   cargarPerfilYAuditoria(): void {
