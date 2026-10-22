@@ -4,6 +4,8 @@ from app.config import Config
 from app.extensions import db, migrate, jwt, cors
 import app.models  # noqa: F401 - Registra las 32 tablas relacionales en SQLAlchemy
 from app.blueprints.auth import auth_bp
+from app.blueprints.catalogos import catalogos_bp
+from app.blueprints.osal import osal_bp
 
 
 def create_app(config_class=Config):
@@ -21,6 +23,8 @@ def create_app(config_class=Config):
 
     # Registrar Blueprints modulares
     app.register_blueprint(auth_bp)
+    app.register_blueprint(catalogos_bp)
+    app.register_blueprint(osal_bp)
 
     @app.route("/api/health", methods=["GET"])
     def health_check():

@@ -48,3 +48,4 @@ Blueprint registrado en `backend/app/blueprints/auth.py` bajo el prefijo `/api/a
    - Tarjeta minimalista de **Alto Contraste WCAG 2.2** con controles táctiles de mínimo `48px`, detección de desconexión rural (`navigator.onLine`) y mensajes de error humanos contextualizados.
 5. **`PanelProtegidoComponent` (`src/app/features/panel/panel-protegido.component.ts`)**:
    - Vista protegida por `authGuard` que despliega en tarjetas los vínculos relacionales del usuario y su bitácora de auditoría en tiempo real.
+

@@ -145,3 +145,4 @@ def obtener_perfil_actual():
             for log in ultimos_logs
         ]
     }), 200
+
