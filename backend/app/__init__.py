@@ -9,6 +9,8 @@ from app.blueprints.osal import osal_bp
 from app.blueprints.campanas import campanas_bp
 from app.blueprints.donaciones import donaciones_bp
 from app.blueprints.voluntariado import voluntariado_bp
+from app.blueprints.mapa import mapa_bp
+from app.blueprints.dashboard import dashboard_bp
 
 
 def create_app(config_class=Config):
@@ -24,13 +26,15 @@ def create_app(config_class=Config):
     jwt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
 
-    # Registrar Blueprints modulares
+    # Registrar Blueprints modulares (10 Casos de Uso)
     app.register_blueprint(auth_bp)
     app.register_blueprint(catalogos_bp)
     app.register_blueprint(osal_bp)
     app.register_blueprint(campanas_bp)
     app.register_blueprint(donaciones_bp)
     app.register_blueprint(voluntariado_bp)
+    app.register_blueprint(mapa_bp)
+    app.register_blueprint(dashboard_bp)
 
     @app.route("/api/health", methods=["GET"])
     def health_check():
