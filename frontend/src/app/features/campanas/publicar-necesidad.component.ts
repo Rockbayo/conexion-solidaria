@@ -161,11 +161,11 @@ export interface CampanaItem {
               </div>
 
               <div class="needs-list">
-                <h3>Requerimientos Asociados</h3>
+                <h3>Necesidades de la Campaña</h3>
                 <ul>
                   @for (n of c.necesidades; track n.id) {
                     <li>
-                      <span class="need-type">{{ n.tipo_codigo }}</span>
+                      <span class="need-type">{{ formatearTipoNecesidad(n.tipo_codigo) }}</span>
                       <span>{{ n.descripcion_item }}</span>
                       <strong>{{ n.cantidad_cubierta }} / {{ n.cantidad_requerida }}</strong>
                     </li>
@@ -175,12 +175,21 @@ export interface CampanaItem {
             </div>
 
             <div class="card-footer">
-              <a routerLink="/donar" [queryParams]="{ campana_id: c.id }" class="cs-btn">
-                Registrar Aporte
-              </a>
-              <a routerLink="/voluntariado" [queryParams]="{ campana_id: c.id }" class="sap-btn-secondary">
-                Vincularme como Voluntario
-              </a>
+              @if (authService.tieneRol('DONANTE', 'ADMIN')) {
+                <a routerLink="/donar" [queryParams]="{ campana_id: c.id }" class="cs-btn">
+                  Realizar Donación
+                </a>
+              }
+              @if (authService.tieneRol('VOLUNTARIO', 'ADMIN')) {
+                <a routerLink="/voluntariado" [queryParams]="{ campana_id: c.id }" class="sap-btn-secondary">
+                  Postularme como Voluntario
+                </a>
+              }
+              @if (!authService.estaAutenticado()) {
+                <a routerLink="/login" class="cs-btn">
+                  Inicia sesión o regístrate para apoyar esta causa
+                </a>
+              }
             </div>
           </article>
         }
@@ -294,6 +303,13 @@ export class PublicarNecesidadComponent implements OnInit {
   calcularPorcentaje(recaudado: number, meta: number): number {
     if (!meta || meta <= 0) return 0;
     return Math.min(100, Math.round((recaudado / meta) * 100));
+  }
+
+  formatearTipoNecesidad(codigo: string): string {
+    if (codigo === 'ECONOMICA') return 'Aporte Económico';
+    if (codigo === 'ESPECIE') return 'Insumos / Especie';
+    if (codigo === 'TIEMPO_VOLUNTARIADO') return 'Voluntariado';
+    return codigo;
   }
 
   guardarCampana(): void {

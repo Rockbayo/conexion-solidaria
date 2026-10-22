@@ -61,18 +61,18 @@ interface DonacionEspecieItem {
                   <h2>{{ item.especie.cantidad }} {{ item.especie.unidad_simbolo }} · {{ item.especie.descripcion_articulos }}</h2>
                   <p class="meta">Campaña: <strong>{{ item.campana_titulo }}</strong> · Organización: {{ item.fundacion_nombre }}</p>
                 </div>
-                <span class="sap-badge sap-badge-ok">{{ item.especie.estado_logistico_actual }}</span>
+                <span class="sap-badge sap-badge-ok">{{ formatearEstado(item.especie.estado_logistico_actual) }}</span>
               </div>
 
               <div class="pipeline-steps" role="list" aria-label="Flujo de estados de despacho">
                 <div class="step-box" [class.active]="esEtapaActiva(item.especie.estado_logistico_actual, 'RECIBIDO')" role="listitem">
-                  Recepción Inicial (RECIBIDO)
+                  1. Recepción Inicial
                 </div>
                 <div class="step-box" [class.active]="esEtapaActiva(item.especie.estado_logistico_actual, 'EN_BODEGA')" role="listitem">
-                  Almacenamiento (EN BODEGA)
+                  2. En Bodega Municipal
                 </div>
                 <div class="step-box" [class.active]="esEtapaActiva(item.especie.estado_logistico_actual, 'ENTREGADO')" role="listitem">
-                  Dispersión Final (ENTREGADO)
+                  3. Entregado en Vereda
                 </div>
               </div>
 
@@ -111,7 +111,7 @@ interface DonacionEspecieItem {
                 <ul>
                   @for (h of item.especie.historial_trazabilidad; track h.id) {
                     <li>
-                      <span class="sap-badge sap-badge-info">{{ h.estado_logistico }}</span>
+                      <span class="sap-badge sap-badge-info">{{ formatearEstado(h.estado_logistico) }}</span>
                       <strong>{{ h.ubicacion_reportada }}</strong>
                       <span>{{ h.observacion }}</span>
                     </li>
@@ -167,6 +167,13 @@ export class TrazabilidadLogisticaComponent implements OnInit {
   esEtapaActiva(actual: string, etapa: string): boolean {
     const orden = ['RECIBIDO', 'EN_BODEGA', 'ENTREGADO'];
     return orden.indexOf(actual) >= orden.indexOf(etapa);
+  }
+
+  formatearEstado(estado: string): string {
+    if (estado === 'RECIBIDO') return 'Recibido';
+    if (estado === 'EN_BODEGA') return 'En Bodega';
+    if (estado === 'ENTREGADO') return 'Entregado';
+    return estado;
   }
 
   cambiarEstado(donacionEspecieId: number, nuevoEstado: 'RECIBIDO' | 'EN_BODEGA' | 'ENTREGADO'): void {

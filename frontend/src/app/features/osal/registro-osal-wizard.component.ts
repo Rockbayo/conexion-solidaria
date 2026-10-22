@@ -191,9 +191,14 @@ interface BorradorOsalWizard {
                   <input id="num_doc" name="num_doc" type="text" class="sap-input" [(ngModel)]="form.numero_documento_representante" (ngModelChange)="persistirBorrador()" required />
                 </div>
                 <div class="form-group">
-                  <label for="correo_rep" class="sap-form-label">Correo Electrónico Corporativo *</label>
-                  <input id="correo_rep" name="correo_rep" type="email" class="sap-input" [(ngModel)]="form.correo_electronico" (ngModelChange)="persistirBorrador()" required />
+                  <label for="correo_rep" class="sap-form-label">Correo Electrónico Institucional *</label>
+                  <input id="correo_rep" name="correo_rep" type="email" class="sap-input" [(ngModel)]="form.correo_electronico" (ngModelChange)="persistirBorrador()" placeholder="contacto@fundacion.org" required />
                 </div>
+              </div>
+
+              <div class="form-group">
+                <label for="clave_rep" class="sap-form-label">Contraseña para la Cuenta de la Fundación *</label>
+                <input id="clave_rep" name="clave_rep" type="password" class="sap-input" [(ngModel)]="form.contrasena" (ngModelChange)="persistirBorrador()" placeholder="Define una contraseña segura para ingresar al portal" required />
               </div>
 
               <div class="wizard-actions">
@@ -394,7 +399,7 @@ export class RegistroOsalWizardComponent implements OnInit {
     if (borrador) {
       this.form = borrador;
       this.mensajeGuardadoOffline.set(
-        'Se han restaurado automáticamente los datos guardados en caché local.'
+        'Restauramos automáticamente el avance de tu solicitud para que continúes donde ibas.'
       );
     }
   }

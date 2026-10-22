@@ -62,11 +62,11 @@ const PINES_FALLBACK_SABANA: PinSabanaNorte[] = [
         </div>
 
         <div class="filter-bar">
-          <label for="mun_filter" class="sap-form-label">Filtro por Jurisdicción Municipal</label>
+          <label for="mun_filter" class="sap-form-label">Filtrar por Municipio</label>
           <select id="mun_filter" class="sap-input" [(ngModel)]="municipioFiltro" (ngModelChange)="filtrarPorMunicipio()">
             <option [ngValue]="0">Todos los municipios (Sabana Norte)</option>
             @for (m of catalogos()?.municipios_sabana_norte || []; track m.id) {
-              <option [ngValue]="m.id">{{ m.nombre }} (DANE {{ m.codigo_dane }})</option>
+              <option [ngValue]="m.id">{{ m.nombre }}</option>
             }
           </select>
         </div>
@@ -92,17 +92,16 @@ const PINES_FALLBACK_SABANA: PinSabanaNorte[] = [
             <article class="cs-card pin-card" (click)="centrarPinEnMapa(p)" tabindex="0">
               <div class="pin-top">
                 <span class="sap-badge sap-badge-info">{{ p.municipio_nombre }} · {{ p.vereda_o_barrio }}</span>
-                <span class="sap-badge sap-badge-ok">{{ p.estado_validacion }}</span>
+                <span class="sap-badge sap-badge-ok">{{ p.estado_validacion === 'APROBADA' ? 'Verificada' : p.estado_validacion }}</span>
               </div>
               <h3>{{ p.razon_social }}</h3>
               <p class="dir-text">{{ p.direccion_fisica }} — {{ p.indicaciones_rurales || 'Sector rural' }}</p>
               <div class="meta-strip">
                 <span>NIT: {{ p.nit }}</span>
-                <span>Lat/Lng: {{ p.latitud }}, {{ p.longitud }}</span>
+                <span>Tel: {{ p.telefono || 'Sin registro' }}</span>
               </div>
               <div class="pin-actions">
-                <a routerLink="/campanas" class="sap-btn-secondary btn-sm">Campañas ({{ p.total_campanas }})</a>
-                <a routerLink="/donar" class="cs-btn btn-sm">Realizar Aporte</a>
+                <a routerLink="/campanas" class="cs-btn btn-sm">Ver Causas Activas ({{ p.total_campanas }})</a>
               </div>
             </article>
           }
