@@ -3,6 +3,7 @@ from flask import Flask, jsonify
 from app.config import Config
 from app.extensions import db, migrate, jwt, cors
 import app.models  # noqa: F401 - Registra las 32 tablas relacionales en SQLAlchemy
+from app.blueprints.auth import auth_bp
 
 
 def create_app(config_class=Config):
@@ -17,6 +18,9 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     jwt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
+
+    # Registrar Blueprints modulares
+    app.register_blueprint(auth_bp)
 
     @app.route("/api/health", methods=["GET"])
     def health_check():

@@ -495,3 +495,4 @@ class AsignacionActividad(db.Model):
     fecha_asignacion = db.Column(db.DateTime, default=utc_now, nullable=False)
 
     postulacion = db.relationship("PostulacionVoluntariado", back_populates="asignacion")
+

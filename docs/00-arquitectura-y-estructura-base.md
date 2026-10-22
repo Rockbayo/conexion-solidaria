@@ -75,3 +75,4 @@ En `backend/app/models/__init__.py` se implementan las **32 tablas relacionales*
 ### 3.2 Estrategia Resiliente Offline-First (PWA)
 - **Service Worker (`@angular/pwa`):** Configurado con grupos de activos (`assetGroups`) en modo `prefetch` y grupos de datos (`dataGroups`) para cachear catálogos y mapas de la Sabana Norte.
 - **Persistencia Local de Formularios:** Ante intermitencia de red, los formularios almacenan el borrador o la transacción en cola local (`localStorage` / cola de sincronización) y presentan mensajes humanos contextualizados bajo lineamientos **WCAG 2.2 (Alto Contraste)**.
+

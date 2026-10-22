@@ -24,3 +24,4 @@ class Config:
 
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "uploads")
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # Límite de 10 MB para soportes/documentos rurales
+
