@@ -14,6 +14,8 @@ export interface CatalogosGenerales {
   metodos_pago: Array<{ id: number; codigo: string; nombre: string }>;
   categorias_habilidades: Array<{ id: number; nombre: string; descripcion: string }>;
   habilidades: Array<{ id: number; categoria_id: number; nombre: string; descripcion: string }>;
+  franjas_horarias: Array<{ id: number; codigo: string; nombre: string; horas_sugeridas: number }>;
+  parametros_sistema: Array<{ id: number; clave: string; valor: string; descripcion: string; tipo_dato: string }>;
 }
 
 const CATALOGOS_FALLBACK_SABANA: CatalogosGenerales = {
@@ -51,9 +53,12 @@ const CATALOGOS_FALLBACK_SABANA: CatalogosGenerales = {
     { id: 3, codigo: 'TIEMPO_VOLUNTARIADO', nombre: 'Tiempo y Talento de Voluntariado' },
   ],
   unidades_medida: [
-    { id: 1, simbolo: 'KG', nombre: 'Kilogramos' },
-    { id: 2, simbolo: 'UND', nombre: 'Unidades' },
-    { id: 3, simbolo: 'KIT', nombre: 'Kits / Paquetes' },
+    { id: 1, simbolo: 'COP', nombre: 'Pesos Colombianos ($ COP)' },
+    { id: 2, simbolo: 'KG', nombre: 'Kilogramos (kg)' },
+    { id: 3, simbolo: 'LT', nombre: 'Litros (L)' },
+    { id: 4, simbolo: 'UND', nombre: 'Unidades (und)' },
+    { id: 5, simbolo: 'KIT', nombre: 'Kits / Paquetes' },
+    { id: 6, simbolo: 'HORAS', nombre: 'Horas de Voluntariado (h)' },
   ],
   metodos_pago: [
     { id: 1, codigo: 'TRANSFERENCIA', nombre: 'Transferencia Bancaria / PSE' },
@@ -69,6 +74,18 @@ const CATALOGOS_FALLBACK_SABANA: CatalogosGenerales = {
     { id: 2, categoria_id: 1, nombre: 'Reforestación de Especies Nativas', descripcion: 'Viverismo y plantación en alta montaña' },
     { id: 3, categoria_id: 2, nombre: 'Tutoría Escolar Primaria Rural', descripcion: 'Refuerzo en lectura, matemáticas y tecnología' },
     { id: 4, categoria_id: 3, nombre: 'Transporte y Distribución en Veredas', descripcion: 'Conducción 4x4 y entrega de acopios' },
+  ],
+  franjas_horarias: [
+    { id: 1, codigo: 'FIN_SEMANA_MANANA', nombre: 'Fines de semana en la mañana (Sábados y Domingos 7:00 a.m. - 12:00 m.)', horas_sugeridas: 5 },
+    { id: 2, codigo: 'FIN_SEMANA_TARDE', nombre: 'Fines de semana en la tarde (Sábados y Domingos 1:00 p.m. - 5:00 p.m.)', horas_sugeridas: 4 },
+    { id: 3, codigo: 'SABADO_COMPLETO', nombre: 'Jornada completa de sábado (7:00 a.m. - 3:00 p.m.)', horas_sugeridas: 8 },
+    { id: 4, codigo: 'ENTRE_SEMANA_MANANA', nombre: 'Entre semana en la mañana (Lunes a Viernes 8:00 a.m. - 12:00 m.)', horas_sugeridas: 4 },
+    { id: 5, codigo: 'ENTRE_SEMANA_TARDE', nombre: 'Entre semana en la tarde (Lunes a Viernes 2:00 p.m. - 6:00 p.m.)', horas_sugeridas: 4 },
+  ],
+  parametros_sistema: [
+    { id: 1, clave: 'MONTO_MINIMO_DONACION_COP', valor: '10000', descripcion: 'Importe mínimo permitido para aportes monetarios ($ COP)', tipo_dato: 'NUMERO' },
+    { id: 2, clave: 'MAX_INTENTOS_LOGIN', valor: '5', descripcion: 'Número máximo de intentos fallidos antes de bloquear una cuenta', tipo_dato: 'NUMERO' },
+    { id: 3, clave: 'NORMA_TRIBUTARIA_VIGENTE', valor: 'Artículos 125, 125-1, 125-2, 125-3 y 257 del Estatuto Tributario Nacional y Decreto 2150 de 2017', descripcion: 'Marco normativo impreso en los certificados de donación', tipo_dato: 'TEXTO' },
   ],
 };
 
@@ -133,4 +150,3 @@ export class OfflineSyncService {
     }
   }
 }
-

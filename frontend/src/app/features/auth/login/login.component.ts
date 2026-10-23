@@ -126,12 +126,21 @@ import { OfflineSyncService, CatalogosGenerales } from '../../../core/services/o
             </p>
 
             <div class="role-cards-list">
+              <article class="role-option-card" (click)="cargarDemo('superadmin@conexion.org')">
+                <div class="role-top">
+                  <strong>Superusuario de la Plataforma</strong>
+                  <span class="sap-badge sap-badge-info">Superusuario</span>
+                </div>
+                <p>Crea administradores de plataforma, gestiona usuarios y parametriza unidades, causas y catálogos.</p>
+                <span class="role-cta">Probar con esta cuenta →</span>
+              </article>
+
               <article class="role-option-card" (click)="cargarDemo('admin@conexion.org')">
                 <div class="role-top">
-                  <strong>Coordinación General de la Plataforma</strong>
+                  <strong>Coordinación General (Administrador)</strong>
                   <span class="sap-badge sap-badge-info">Administración</span>
                 </div>
-                <p>Revisa los documentos legales y aprueba las fundaciones inscritas en la región.</p>
+                <p>Aprueba fundaciones inscritas, administra cuentas operativas y restablece contraseñas.</p>
                 <span class="role-cta">Probar con esta cuenta →</span>
               </article>
 

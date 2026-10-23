@@ -45,11 +45,12 @@ export class AuthService {
     if (!u) {
       return this.modoInvitado() ? 'Visitante · Modo Invitado (Lectura)' : 'Sin Sesión Activa';
     }
+    if (u.roles.includes('SUPER_ADMIN')) return 'Superusuario de la Plataforma';
     if (u.roles.includes('ADMIN')) return 'Administrador de la Plataforma';
     if (u.roles.includes('REPRESENTANTE_OSAL')) {
-      return u.fundacion_nombre ? `Admin OSAL · ${u.fundacion_nombre}` : 'Administrador de OSAL';
+      return u.fundacion_nombre ? `Representante OSAL · ${u.fundacion_nombre}` : 'Representante de Fundación';
     }
-    if (u.roles.includes('VOLUNTARIO')) return 'Voluntario Rural Registrado';
+    if (u.roles.includes('VOLUNTARIO')) return 'Voluntario Comunitario Registrado';
     if (u.roles.includes('DONANTE')) return 'Donante Solidario Registrado';
     return u.roles.join(' · ');
   });
@@ -89,10 +90,14 @@ export class AuthService {
 
   obtenerPerfilremoto(): Observable<{
     usuario: UsuarioSesion;
+    resumen_voluntario?: any;
+    resumen_donante?: any;
     auditoria_reciente: Array<{ id: number; accion: string; entidad_afectada?: string; detalle: string; direccion_ip?: string; fecha_evento: string }>;
   }> {
     return this.http.get<{
       usuario: UsuarioSesion;
+      resumen_voluntario?: any;
+      resumen_donante?: any;
       auditoria_reciente: Array<{ id: number; accion: string; entidad_afectada?: string; detalle: string; direccion_ip?: string; fecha_evento: string }>;
     }>(`${this.apiUrl}/me`);
   }
@@ -122,16 +127,19 @@ export class AuthService {
   tieneRol(...rolesRequeridos: string[]): boolean {
     const usuario = this.usuarioActual();
     if (!usuario) return false;
-    return usuario.roles.some((r) => rolesRequeridos.includes(r));
+    const expandidos = new Set(rolesRequeridos);
+    if (expandidos.has('ADMIN')) {
+      expandidos.add('SUPER_ADMIN');
+    }
+    return usuario.roles.some((r) => expandidos.has(r));
   }
 
   rutaInicioPorRol(): string {
     const u = this.usuarioActual();
     if (!u) return '/mapa';
-    if (u.roles.includes('ADMIN')) return '/panel';
+    if (u.roles.includes('SUPER_ADMIN') || u.roles.includes('ADMIN')) return '/panel';
     if (u.roles.includes('REPRESENTANTE_OSAL')) return '/dashboard';
-    if (u.roles.includes('VOLUNTARIO')) return '/voluntariado';
-    if (u.roles.includes('DONANTE')) return '/donar';
+    if (u.roles.includes('VOLUNTARIO') || u.roles.includes('DONANTE')) return '/panel';
     return '/mapa';
   }
 

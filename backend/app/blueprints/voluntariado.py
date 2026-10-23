@@ -2,10 +2,11 @@
 Blueprint de Voluntariado y Asignaciones (5FN):
 - CU05: Postulación Voluntariado (postulaciones_voluntariado, asignaciones_actividades, necesidades_campana)
 - CU10: Perfil de Habilidades (voluntarios, categorias_habilidades, habilidades, perfil_habilidades_voluntario)
+Aplica privacidad por rol (cada voluntario ve únicamente sus propias postulaciones) y validación de tope horario.
 """
 from decimal import Decimal
 from flask import Blueprint, request, jsonify
-from flask_jwt_extended import get_jwt_identity, get_jwt
+from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity, get_jwt
 from app.extensions import db
 from app.security import requiere_roles
 from app.models import (
@@ -19,11 +20,27 @@ voluntariado_bp = Blueprint("voluntariado", __name__, url_prefix="/api/voluntari
 @voluntariado_bp.route("/labores", methods=["GET"])
 def listar_labores_voluntariado():
     """
-    Lista las necesidades de campañas de tipo TIEMPO_VOLUNTARIADO (o generales) y las
-    postulaciones/asignaciones registradas en la Sabana Norte.
+    Lista las labores de voluntariado disponibles y las postulaciones aplicando Mínimo Privilegio:
+    - VOLUNTARIO: Solo ve sus propias postulaciones y su cupo horario semanal disponible.
+    - REPRESENTANTE_OSAL: Ve las postulaciones hechas a las campañas de su fundación.
+    - ADMIN / SUPER_ADMIN: Ve todas las postulaciones de la región.
     """
-    necesidades = NecesidadCampana.query.order_by(NecesidadCampana.id.desc()).all()
-    postulaciones = PostulacionVoluntariado.query.order_by(PostulacionVoluntariado.fecha_postulacion.desc()).all()
+    roles_usuario = set()
+    voluntario_id_sesion = None
+    fundacion_id_sesion = None
+
+    try:
+        verify_jwt_in_request(optional=True)
+        claims = get_jwt() or {}
+        roles_usuario = set(claims.get("roles") or [])
+        voluntario_id_sesion = claims.get("voluntario_id")
+        fundacion_id_sesion = claims.get("fundacion_id")
+    except Exception:
+        pass
+
+    todas_nec = NecesidadCampana.query.order_by(NecesidadCampana.id.desc()).all()
+    nec_vol = [n for n in todas_nec if n.tipo_necesidad and n.tipo_necesidad.codigo == "TIEMPO_VOLUNTARIADO"]
+    necesidades = nec_vol if nec_vol else todas_nec
 
     labores = []
     for n in necesidades:
@@ -46,6 +63,21 @@ def listar_labores_voluntariado():
             "municipio": municipio,
         })
 
+    # Filtrado estricto de postulaciones por rol (Confidencialidad y Mínimo Privilegio)
+    postulaciones_query = PostulacionVoluntariado.query.order_by(PostulacionVoluntariado.fecha_postulacion.desc())
+    if "ADMIN" in roles_usuario or "SUPER_ADMIN" in roles_usuario:
+        postulaciones = postulaciones_query.all()
+    elif "REPRESENTANTE_OSAL" in roles_usuario and fundacion_id_sesion:
+        todas_p = postulaciones_query.all()
+        postulaciones = [
+            p for p in todas_p
+            if p.necesidad_campana and p.necesidad_campana.campana and p.necesidad_campana.campana.fundacion_id == int(fundacion_id_sesion)
+        ]
+    elif voluntario_id_sesion:
+        postulaciones = postulaciones_query.filter_by(voluntario_id=int(voluntario_id_sesion)).all()
+    else:
+        postulaciones = []
+
     lista_postulaciones = []
     for p in postulaciones:
         vol_nombre = "Voluntario Solidario"
@@ -54,8 +86,20 @@ def listar_labores_voluntariado():
 
         lista_postulaciones.append({
             "id": p.id,
+            "voluntario_id": p.voluntario_id,
             "voluntario_nombre": vol_nombre,
+            "necesidad_id": p.necesidad_campana_id,
             "labor_descripcion": p.necesidad_campana.descripcion_item if p.necesidad_campana else "Labor rural",
+            "campana_titulo": (
+                p.necesidad_campana.campana.titulo
+                if (p.necesidad_campana and p.necesidad_campana.campana)
+                else "Campaña Sabana Norte"
+            ),
+            "fundacion_nombre": (
+                p.necesidad_campana.campana.fundacion.razon_social
+                if (p.necesidad_campana and p.necesidad_campana.campana and p.necesidad_campana.campana.fundacion)
+                else "Fundación Sabana Norte"
+            ),
             "motivacion": p.motivacion,
             "disponibilidad_propuesta": p.disponibilidad_propuesta,
             "estado_postulacion": p.estado_postulacion,
@@ -67,9 +111,31 @@ def listar_labores_voluntariado():
             } if p.asignacion else None
         })
 
+    # Calcular resumen de disponibilidad del voluntario activo
+    resumen_disponibilidad = {
+        "disponibilidad_horas_semana": 8,
+        "horas_comprometidas": 0,
+        "horas_disponibles_restantes": 8
+    }
+    if voluntario_id_sesion:
+        vol_obj = db.session.get(Voluntario, int(voluntario_id_sesion))
+        if vol_obj:
+            comprometidas = sum(
+                (p.asignacion.horas_comprometidas if p.asignacion else 0)
+                for p in vol_obj.postulaciones
+                if p.estado_postulacion != "RECHAZADO"
+            )
+            disp_total = int(vol_obj.disponibilidad_horas_semana or 4)
+            resumen_disponibilidad = {
+                "disponibilidad_horas_semana": disp_total,
+                "horas_comprometidas": int(comprometidas),
+                "horas_disponibles_restantes": max(0, disp_total - int(comprometidas))
+            }
+
     return jsonify({
         "labores": labores,
-        "postulaciones": lista_postulaciones
+        "postulaciones": lista_postulaciones,
+        "resumen_disponibilidad": resumen_disponibilidad
     }), 200
 
 
@@ -78,7 +144,7 @@ def listar_labores_voluntariado():
 def postular_a_labor():
     """
     Exclusivo para VOLUNTARIO o ADMIN (Mínimo Privilegio):
-    Registra la postulación de un voluntario autenticado a una labor específica.
+    Registra la postulación validando que las horas comprometidas no superen la disponibilidad semanal registrada.
     """
     data = request.get_json(silent=True) or {}
     identidad = get_jwt_identity()
@@ -88,16 +154,26 @@ def postular_a_labor():
     voluntario_id = claims.get("voluntario_id") or data.get("voluntario_id")
     necesidad_id = data.get("necesidad_campana_id")
     motivacion = (data.get("motivacion") or "").strip()
-    disponibilidad = (data.get("disponibilidad_propuesta") or "Fines de semana en la mañana").strip()
-    horas_comprometidas = int(data.get("horas_comprometidas") or 6)
+    disponibilidad = (data.get("disponibilidad_propuesta") or "").strip()
+
+    try:
+        horas_comprometidas = int(data.get("horas_comprometidas") or 0)
+    except (ValueError, TypeError):
+        horas_comprometidas = 0
 
     voluntario = db.session.get(Voluntario, int(voluntario_id)) if voluntario_id else Voluntario.query.first()
     necesidad = db.session.get(NecesidadCampana, int(necesidad_id)) if necesidad_id else NecesidadCampana.query.first()
 
-    if not voluntario or not necesidad or not motivacion:
+    if not voluntario or not necesidad or not motivacion or not disponibilidad:
         return jsonify({
             "error": "Datos incompletos",
-            "mensaje_humano": "Por favor selecciona la labor comunitaria y cuéntanos brevemente tu motivación para participar."
+            "mensaje_humano": "Por favor selecciona la actividad comunitaria, la franja horaria de la lista y escribe tu perfil de apoyo."
+        }), 400
+
+    if horas_comprometidas < 1:
+        return jsonify({
+            "error": "Horas inválidas",
+            "mensaje_humano": "Debes comprometer al menos 1 hora para postularte a la actividad."
         }), 400
 
     existente = PostulacionVoluntariado.query.filter_by(
@@ -108,8 +184,29 @@ def postular_a_labor():
     if existente:
         return jsonify({
             "error": "Postulación ya existente",
-            "mensaje_humano": "Ya te habías postulado anteriormente a esta labor comunitaria. ¡Gracias por tu compromiso!"
+            "mensaje_humano": "Ya tienes una inscripción activa en esta actividad comunitaria. Puedes elegir otra labor disponible o revisar tus asignaciones vigentes."
         }), 409
+
+    # Validar que las horas comprometidas no superen la disponibilidad semanal registrada por el voluntario
+    horas_ya_comprometidas = sum(
+        (p.asignacion.horas_comprometidas if p.asignacion else 0)
+        for p in voluntario.postulaciones
+        if p.estado_postulacion != "RECHAZADO"
+    )
+    disp_maxima = int(voluntario.disponibilidad_horas_semana or 4)
+    horas_restantes = max(0, disp_maxima - int(horas_ya_comprometidas))
+
+    if horas_comprometidas > disp_maxima:
+        return jsonify({
+            "error": "Supera disponibilidad semanal",
+            "mensaje_humano": f"No puedes comprometer {horas_comprometidas} horas porque en tu inscripción registraste una disponibilidad máxima de {disp_maxima} horas por semana."
+        }), 400
+
+    if horas_comprometidas > horas_restantes:
+        return jsonify({
+            "error": "Cupo horario semanal agotado",
+            "mensaje_humano": f"Tienes {disp_maxima} horas semanales registradas y ya comprometiste {horas_ya_comprometidas} horas en otras labores. Actualmente puedes comprometer máximo {horas_restantes} hora(s) adicional(es)."
+        }), 400
 
     postulacion = PostulacionVoluntariado(
         voluntario_id=voluntario.id,
@@ -137,14 +234,14 @@ def postular_a_labor():
         accion="POSTULACION_VOLUNTARIADO",
         entidad_afectada="postulaciones_voluntariado",
         registro_id=postulacion.id,
-        detalle=f"Voluntario #{voluntario.id} postulado a necesidad #{necesidad.id} por {horas_comprometidas} horas.",
+        detalle=f"Voluntario #{voluntario.id} postulado a '{necesidad.descripcion_item}' por {horas_comprometidas} horas.",
         direccion_ip=request.remote_addr
     ))
 
     db.session.commit()
 
     return jsonify({
-        "mensaje_humano": f"¡Postulación exitosa! Te hemos asignado {horas_comprometidas} horas en la labor '{necesidad.descripcion_item}'.",
+        "mensaje_humano": f"¡Postulación confirmada! Quedaste inscrito(a) con {horas_comprometidas} horas para apoyar la actividad «{necesidad.descripcion_item}». La fundación cuenta contigo.",
         "postulacion_id": postulacion.id
     }), 201
 
@@ -152,10 +249,17 @@ def postular_a_labor():
 @voluntariado_bp.route("/perfil-habilidades", methods=["GET"])
 def obtener_perfil_habilidades():
     """
-    CU10: Obtiene la información del voluntario y su matriz de competencias normalizada
-    en perfil_habilidades_voluntario -> habilidades -> categorias_habilidades.
+    CU10: Obtiene la información del voluntario autenticado (o solicitado) y su matriz de competencias.
     """
     voluntario_id = request.args.get("voluntario_id")
+    if not voluntario_id:
+        try:
+            verify_jwt_in_request(optional=True)
+            claims = get_jwt() or {}
+            voluntario_id = claims.get("voluntario_id")
+        except Exception:
+            pass
+
     voluntario = db.session.get(Voluntario, int(voluntario_id)) if voluntario_id else Voluntario.query.first()
 
     if not voluntario:
@@ -211,7 +315,7 @@ def actualizar_perfil_habilidades():
         }), 404
 
     if "disponibilidad_horas_semana" in data:
-        voluntario.disponibilidad_horas_semana = int(data.get("disponibilidad_horas_semana") or 4)
+        voluntario.disponibilidad_horas_semana = max(1, int(data.get("disponibilidad_horas_semana") or 4))
     if "biografia_corta" in data:
         voluntario.biografia_corta = (data.get("biografia_corta") or "").strip()
     if "dispuesto_desplazamiento_rural" in data:
@@ -245,14 +349,14 @@ def actualizar_perfil_habilidades():
         accion="ACTUALIZAR_PERFIL_HABILIDADES",
         entidad_afectada="perfil_habilidades_voluntario",
         registro_id=voluntario.id,
-        detalle=f"Actualizadas competencias y disponibilidad del voluntario #{voluntario.id}.",
+        detalle=f"Actualizadas competencias y disponibilidad ({voluntario.disponibilidad_horas_semana}h/sem) del voluntario #{voluntario.id}.",
         direccion_ip=request.remote_addr
     ))
 
     db.session.commit()
 
     return jsonify({
-        "mensaje_humano": "¡Tus habilidades y disponibilidad rural han quedado actualizadas en tu perfil solidario!"
+        "mensaje_humano": "¡Tus habilidades y disponibilidad semanal han quedado actualizadas en tu perfil de voluntario!"
     }), 200
 
 
@@ -265,4 +369,3 @@ def eliminar_habilidad_voluntario(registro_id: int):
     db.session.delete(rel)
     db.session.commit()
     return jsonify({"mensaje_humano": "Habilidad retirada de tu perfil."}), 200
-

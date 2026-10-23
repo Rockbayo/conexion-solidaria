@@ -52,6 +52,17 @@ def registrar_osal():
             "mensaje_humano": "Faltan algunos datos importantes de tu fundación o ubicación veredal. Revisa los pasos del formulario."
         }), 400
 
+    # Validación estricta de Soportes Documentales obligatorios (RUT y Cámara de Comercio)
+    docs_validos = [
+        d for d in documentos_legales
+        if isinstance(d, dict) and (d.get("nombre_archivo") or "").strip()
+    ]
+    if len(docs_validos) < 2:
+        return jsonify({
+            "error": "Soportes documentales obligatorios faltantes",
+            "mensaje_humano": "Para radicar la solicitud es obligatorio adjuntar tanto el Registro Único Tributario (RUT) como el Certificado de Existencia y Representación Legal."
+        }), 400
+
     if FundacionOsal.query.filter_by(nit=nit).first():
         return jsonify({
             "error": "NIT duplicado",
@@ -137,16 +148,10 @@ def registrar_osal():
     db.session.add(nueva_fundacion)
     db.session.flush()
 
-    if not documentos_legales:
-        documentos_legales = [
-            {"tipo_soporte": "RUT_DIAN", "nombre_archivo": f"RUT_{nit}.pdf"},
-            {"tipo_soporte": "CERTIFICADO_EXISTENCIA_CAMARA", "nombre_archivo": f"CamaraComercio_{nit}.pdf"},
-        ]
-
     soportes_creados = []
-    for doc in documentos_legales:
+    for doc in docs_validos:
         tipo_sop = (doc.get("tipo_soporte") or "SOPORTE_LEGAL").upper()
-        nom_arch = doc.get("nombre_archivo") or f"{tipo_sop}_{nit}.pdf"
+        nom_arch = (doc.get("nombre_archivo") or "").strip()
         soporte = DocumentoLegalOsal(
             fundacion_id=nueva_fundacion.id,
             tipo_soporte=tipo_sop,

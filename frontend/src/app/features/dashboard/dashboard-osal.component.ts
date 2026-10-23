@@ -32,6 +32,18 @@ interface DashboardMetricas {
     total_necesidades: number;
     estado: string;
   }>;
+  voluntarios_postulados?: Array<{
+    postulacion_id: number;
+    voluntario_nombre: string;
+    telefono: string;
+    correo: string;
+    habilidades: string[];
+    labor_descripcion: string;
+    campana_titulo: string;
+    disponibilidad_propuesta: string;
+    horas_comprometidas: number;
+    estado_postulacion: string;
+  }>;
 }
 
 @Component({
@@ -43,10 +55,13 @@ interface DashboardMetricas {
       <div class="sap-page-header-inner">
         <div>
           <span class="sap-breadcrumb">Analítica e Inteligencia Operativa</span>
-          <h1 class="sap-page-title">Tablero de Control e Indicadores de Gestión</h1>
-          <p class="sap-page-subtitle">Consolidado financiero, ejecución presupuestal de campañas, voluntariado y cadena de suministro rural.</p>
+          <h1 class="sap-page-title">Tablero de Control e Indicadores de Gestión OSAL</h1>
+          <p class="sap-page-subtitle">Consolidado financiero, ejecución de campañas, equipo de voluntariado postulado y cadena de suministro rural.</p>
         </div>
-        <a routerLink="/campanas" class="cs-btn">Nueva Campaña</a>
+        <div class="header-actions">
+          <a routerLink="/trazabilidad" class="sap-btn-secondary">Logística en Especie</a>
+          <a routerLink="/campanas" class="cs-btn">+ Publicar Nueva Campaña</a>
+        </div>
       </div>
     </div>
 
@@ -73,11 +88,11 @@ interface DashboardMetricas {
 
           <article class="cs-card kpi-card">
             <div class="kpi-top">
-              <span class="kpi-label">Cobertura Institucional</span>
+              <span class="kpi-label">Cobertura de Programas</span>
               <span class="sap-badge sap-badge-info">Sabana Norte</span>
             </div>
-            <strong class="kpi-value">{{ d.kpis.campanas_activas }} Programas</strong>
-            <span class="kpi-sub">{{ d.kpis.fundaciones_registradas }} organizaciones OSAL registradas</span>
+            <strong class="kpi-value">{{ d.kpis.campanas_activas }} Campañas</strong>
+            <span class="kpi-sub">{{ d.kpis.fundaciones_registradas }} organización(es) activa(s)</span>
           </article>
 
           <article class="cs-card kpi-card">
@@ -119,10 +134,51 @@ interface DashboardMetricas {
             }
           </div>
         </section>
+
+        <!-- SECCIÓN EXCLUSIVA PARA OSAL / ADMIN: VOLUNTARIOS POSTULADOS A SUS CAMPAÑAS -->
+        <section class="cs-card table-card" style="margin-top: 1.5rem;" aria-label="Voluntarios asignados a la fundación">
+          <div class="table-head">
+            <div>
+              <h2>Directorio de Voluntarios Postulados a Nuestras Causas</h2>
+              <p class="sub-head">Información de contacto, habilidades certificadas y horarios comprometidos por cada voluntario.</p>
+            </div>
+            <span class="sap-badge sap-badge-ok">{{ (d.voluntarios_postulados || []).length }} Postulación(es)</span>
+          </div>
+
+          @if (!d.voluntarios_postulados || d.voluntarios_postulados.length === 0) {
+            <p class="empty-note">Aún no se registran postulaciones de voluntarios en las campañas de esta organización.</p>
+          } @else {
+            <div class="campaign-rows">
+              @for (v of d.voluntarios_postulados; track v.postulacion_id) {
+                <article class="camp-row">
+                  <div class="camp-row-head">
+                    <div>
+                      <h3>{{ v.voluntario_nombre }}</h3>
+                      <p>📞 Teléfono: <strong>{{ v.telefono }}</strong> · ✉️ Correo: {{ v.correo || 'Registrado' }}</p>
+                    </div>
+                    <span class="sap-badge sap-badge-ok">{{ v.horas_comprometidas }} Horas Comprometidas ({{ v.estado_postulacion }})</span>
+                  </div>
+                  <p class="vol-detail">
+                    <strong>Actividad asignada:</strong> {{ v.labor_descripcion }} ({{ v.campana_titulo }})<br/>
+                    <strong>Franja horaria disponible:</strong> {{ v.disponibilidad_propuesta }}
+                  </p>
+                  @if (v.habilidades && v.habilidades.length > 0) {
+                    <div class="skills-row">
+                      @for (hab of v.habilidades; track hab) {
+                        <span class="skill-chip">🌱 {{ hab }}</span>
+                      }
+                    </div>
+                  }
+                </article>
+              }
+            </div>
+          }
+        </section>
       }
     </main>
   `,
   styles: [`
+    .header-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; }
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem; }
     .kpi-card { display: flex; flex-direction: column; gap: 0.45rem; border-top: 3px solid var(--sap-brand-primary); }
     .kpi-top { display: flex; justify-content: space-between; align-items: center; }
@@ -132,6 +188,7 @@ interface DashboardMetricas {
     .table-card { border-top: 3px solid var(--sap-brand-primary); }
     .table-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.85rem; margin-bottom: 1.15rem; border-bottom: 1px solid var(--sap-border-subtle); }
     .table-head h2 { margin: 0; font-size: 1.12rem; }
+    .sub-head { margin: 0.2rem 0 0 0; font-size: 0.85rem; color: var(--sap-text-secondary); }
     .campaign-rows { display: flex; flex-direction: column; gap: 0.9rem; }
     .camp-row { padding: 1rem; border: 1px solid var(--sap-border-subtle); border-radius: 6px; background: var(--sap-bg-canvas); }
     .camp-row-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
@@ -140,6 +197,9 @@ interface DashboardMetricas {
     .bar-bg { height: 8px; background: #CBD5E1; border-radius: 999px; overflow: hidden; margin-bottom: 0.5rem; }
     .bar-fill { height: 100%; background: var(--sap-brand-primary); }
     .camp-row-foot { display: flex; justify-content: space-between; font-size: 0.86rem; }
+    .vol-detail { margin: 0.35rem 0; font-size: 0.88rem; color: var(--sap-text-primary); line-height: 1.45; }
+    .skills-row { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.5rem; }
+    .skill-chip { font-size: 0.78rem; font-weight: 600; padding: 0.2rem 0.6rem; background: #E8F1FF; color: var(--sap-brand-primary); border-radius: 999px; }
   `]
 })
 export class DashboardOsalComponent implements OnInit {
@@ -162,7 +222,11 @@ export class DashboardOsalComponent implements OnInit {
             horas_voluntariado_comprometidas: 8,
             donaciones_especie_totales: 1,
           },
-          logistica_especie: { recibido: 1, en_bodega: 0, entregado: 0 },
+          logistica_especie: {
+            recibido: 1,
+            en_bodega: 0,
+            entregado: 0,
+          },
           campanas_desempeno: [
             {
               id: 1,
@@ -176,6 +240,7 @@ export class DashboardOsalComponent implements OnInit {
               estado: 'ACTIVA',
             },
           ],
+          voluntarios_postulados: [],
         });
       },
     });

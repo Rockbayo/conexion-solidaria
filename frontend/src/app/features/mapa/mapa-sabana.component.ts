@@ -101,7 +101,14 @@ const PINES_FALLBACK_SABANA: PinSabanaNorte[] = [
                 <span>Tel: {{ p.telefono || 'Sin registro' }}</span>
               </div>
               <div class="pin-actions">
-                <a routerLink="/campanas" class="cs-btn btn-sm">Ver Causas Activas ({{ p.total_campanas }})</a>
+                <a
+                  routerLink="/campanas"
+                  [queryParams]="{ fundacion_id: p.fundacion_id, fundacion_nombre: p.razon_social }"
+                  (click)="$event.stopPropagation()"
+                  class="cs-btn btn-sm"
+                >
+                  Ver Causas de esta Fundación ({{ p.total_campanas }})
+                </a>
               </div>
             </article>
           }

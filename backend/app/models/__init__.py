@@ -33,6 +33,7 @@ class Usuario(db.Model):
     correo_electronico = db.Column(db.String(150), unique=True, nullable=False, index=True)
     hash_contrasena = db.Column(db.String(255), nullable=False)
     esta_activo = db.Column(db.Boolean, default=True, nullable=False)
+    intentos_fallidos = db.Column(db.Integer, default=0, nullable=False)
     fecha_registro = db.Column(db.DateTime, default=utc_now, nullable=False)
     ultimo_acceso = db.Column(db.DateTime, nullable=True)
 
@@ -335,6 +336,7 @@ class NecesidadCampana(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     campana_id = db.Column(db.Integer, db.ForeignKey("campanas.id", ondelete="CASCADE"), nullable=False)
     tipo_necesidad_id = db.Column(db.Integer, db.ForeignKey("tipos_necesidad.id", ondelete="RESTRICT"), nullable=False)
+    unidad_medida_id = db.Column(db.Integer, db.ForeignKey("unidades_medida.id", ondelete="SET NULL"), nullable=True)
     descripcion_item = db.Column(db.String(200), nullable=False)
     cantidad_requerida = db.Column(db.Numeric(12, 2), default=1, nullable=False)
     cantidad_cubierta = db.Column(db.Numeric(12, 2), default=0, nullable=False)
@@ -342,6 +344,7 @@ class NecesidadCampana(db.Model):
 
     campana = db.relationship("Campana", back_populates="necesidades")
     tipo_necesidad = db.relationship("TipoNecesidad", back_populates="necesidades")
+    unidad_medida = db.relationship("UnidadMedida", back_populates="necesidades_campana")
     postulaciones = db.relationship("PostulacionVoluntariado", back_populates="necesidad_campana")
 
 
@@ -368,10 +371,11 @@ class UnidadMedida(db.Model):
     __tablename__ = "unidades_medida"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    simbolo = db.Column(db.String(15), unique=True, nullable=False)  # KG, UND, LT, CAJA
+    simbolo = db.Column(db.String(15), unique=True, nullable=False)  # COP, KG, UND, LT, KIT, HORAS
     nombre = db.Column(db.String(60), nullable=False)
 
     donaciones_especie = db.relationship("DonacionEspecie", back_populates="unidad_medida")
+    necesidades_campana = db.relationship("NecesidadCampana", back_populates="unidad_medida")
 
 
 class MetodoPago(db.Model):
@@ -454,14 +458,39 @@ class ReciboTributario(db.Model):
     numero_consecutivo = db.Column(db.String(40), unique=True, nullable=False)
     anio_gravable = db.Column(db.Integer, nullable=False)
     hash_verificacion = db.Column(db.String(120), unique=True, nullable=False)
+    enviado_correo = db.Column(db.Boolean, default=False, nullable=False)
+    correo_destino = db.Column(db.String(150), nullable=True)
+    fecha_envio_correo = db.Column(db.DateTime, nullable=True)
     fecha_emision = db.Column(db.DateTime, default=utc_now, nullable=False)
 
     donacion_economica = db.relationship("DonacionEconomica", back_populates="recibo_tributario")
 
 
 # ==============================================================================
-# MÓDULO 7: ASIGNACIONES (2 Tablas: postulaciones_voluntariado, asignaciones_actividades)
+# MÓDULO 7: ASIGNACIONES Y PARAMETRIZACIÓN MAESTRA
+# (postulaciones_voluntariado, asignaciones_actividades, franjas_horarias, parametros_sistema)
 # ==============================================================================
+
+class FranjaHoraria(db.Model):
+    __tablename__ = "franjas_horarias"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    codigo = db.Column(db.String(40), unique=True, nullable=False)
+    nombre = db.Column(db.String(150), nullable=False)
+    horas_sugeridas = db.Column(db.Integer, default=4, nullable=False)
+    activa = db.Column(db.Boolean, default=True, nullable=False)
+
+
+class ParametroSistema(db.Model):
+    __tablename__ = "parametros_sistema"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    clave = db.Column(db.String(80), unique=True, nullable=False)
+    valor = db.Column(db.String(255), nullable=False)
+    descripcion = db.Column(db.String(255), nullable=False)
+    tipo_dato = db.Column(db.String(20), default="TEXTO", nullable=False)
+    fecha_actualizacion = db.Column(db.DateTime, default=utc_now, nullable=False)
+
 
 class PostulacionVoluntariado(db.Model):
     __tablename__ = "postulaciones_voluntariado"

@@ -24,8 +24,7 @@ export const authGuard: CanActivateFn = (route) => {
   }
 
   if (rolesPermitidos && rolesPermitidos.length > 0) {
-    const usuario = authService.usuarioActual();
-    const poseePermiso = usuario?.roles.some((rol) => rolesPermitidos.includes(rol));
+    const poseePermiso = authService.tieneRol(...rolesPermitidos);
     if (!poseePermiso) {
       return router.createUrlTree(['/panel'], {
         queryParams: { acceso_restringido: 'true' },

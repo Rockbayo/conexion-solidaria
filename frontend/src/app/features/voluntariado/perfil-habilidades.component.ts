@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
 import { OfflineSyncService, CatalogosGenerales } from '../../core/services/offline-sync.service';
 import { AuthService } from '../../core/services/auth.service';
 import { getApiBaseUrl } from '../../core/config/api.config';
@@ -18,7 +19,7 @@ interface CompetenciaVoluntario {
 @Component({
   selector: 'app-perfil-habilidades',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="sap-page-header">
       <div class="sap-page-header-inner">
@@ -27,12 +28,16 @@ interface CompetenciaVoluntario {
           <h1 class="sap-page-title">Matriz de Competencias y Disponibilidad Operativa</h1>
           <p class="sap-page-subtitle">Administración de especialidades técnicas, experiencia acreditada y cobertura de desplazamiento rural.</p>
         </div>
+        <div style="display:flex; gap:0.65rem; flex-wrap:wrap;">
+          <a routerLink="/voluntariado" class="sap-btn-secondary">Postularme a Actividad</a>
+          <a routerLink="/panel" class="cs-btn">Finalizar y Volver a Mi Resumen</a>
+        </div>
       </div>
     </div>
 
     <main class="sap-container">
       @if (mensajeHumano()) {
-        <div class="cs-alert-human" role="status">{{ mensajeHumano() }}</div>
+        <div class="alert-success-hab" role="status">✅ {{ mensajeHumano() }}</div>
       }
 
       <div class="layout-grid">
@@ -122,6 +127,7 @@ interface CompetenciaVoluntario {
     </main>
   `,
   styles: [`
+    .alert-success-hab { border-left: 5px solid #15803D; background: #DCFCE7; color: #14532D; padding: 0.9rem 1.2rem; border-radius: 6px; font-weight: 700; margin-bottom: 1.25rem; }
     .layout-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem; align-items: start; }
     .sap-panel { border-top: 3px solid var(--sap-brand-primary); }
     .panel-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.85rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--sap-border-subtle); }

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { RouterLink } from '@angular/router';
 import { getApiBaseUrl } from '../../core/config/api.config';
 
 interface DonacionEspecieItem {
@@ -29,7 +30,7 @@ interface DonacionEspecieItem {
 @Component({
   selector: 'app-trazabilidad-logistica',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <div class="sap-page-header">
       <div class="sap-page-header-inner">
@@ -38,12 +39,13 @@ interface DonacionEspecieItem {
           <h1 class="sap-page-title">Control de Trazabilidad Logística de Bienes en Especie</h1>
           <p class="sap-page-subtitle">Monitoreo de estados operativos desde la recepción inicial hasta la entrega final en vereda.</p>
         </div>
+        <a routerLink="/dashboard" class="sap-btn-secondary">← Volver al Tablero OSAL</a>
       </div>
     </div>
 
     <main class="sap-container">
       @if (mensajeHumano()) {
-        <div class="cs-alert-human" role="status">{{ mensajeHumano() }}</div>
+        <div class="alert-traza-ok" role="status">✅ {{ mensajeHumano() }}</div>
       }
 
       @if (itemsEspecie().length === 0) {
@@ -125,6 +127,7 @@ interface DonacionEspecieItem {
     </main>
   `,
   styles: [`
+    .alert-traza-ok { border-left: 5px solid #15803D; background: #DCFCE7; color: #14532D; padding: 0.9rem 1.2rem; border-radius: 6px; font-weight: 700; margin-bottom: 1.25rem; }
     .cards-list { display: flex; flex-direction: column; gap: 1.5rem; }
     .traza-card { border-top: 3px solid var(--sap-brand-primary); }
     .traza-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; padding-bottom: 0.85rem; border-bottom: 1px solid var(--sap-border-subtle); }

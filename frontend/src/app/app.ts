@@ -11,7 +11,7 @@ import { AuthService } from './core/services/auth.service';
     <header class="sap-shellbar" role="banner">
       <div class="sap-shellbar-inner">
         <div class="sap-shell-brand">
-          <a [routerLink]="authService.tieneSesionOInvitado() ? '/mapa' : '/login'" class="sap-logo">
+          <a [routerLink]="authService.estaAutenticado() ? authService.rutaInicioPorRol() : (authService.modoInvitado() ? '/mapa' : '/login')" class="sap-logo">
             <span class="sap-logo-mark">CS</span>
             <span class="sap-logo-text">
               <strong>Conexión Solidaria</strong>
@@ -23,6 +23,10 @@ import { AuthService } from './core/services/auth.service';
         <!-- NAVEGACIÓN CONDICIONADA POR MÍNIMO PRIVILEGIO (RBAC) -->
         @if (authService.tieneSesionOInvitado()) {
           <nav class="sap-shell-nav" aria-label="Navegación según privilegios del rol">
+            @if (authService.estaAutenticado() && !authService.tieneRol('ADMIN')) {
+              <a routerLink="/panel" routerLinkActive="active" class="sap-nav-item">Mi Resumen</a>
+            }
+
             <a routerLink="/mapa" routerLinkActive="active" class="sap-nav-item">Mapa Territorial</a>
             <a routerLink="/campanas" routerLinkActive="active" class="sap-nav-item">Causas y Necesidades</a>
 
@@ -41,7 +45,9 @@ import { AuthService } from './core/services/auth.service';
             }
 
             @if (authService.tieneRol('ADMIN')) {
-              <a routerLink="/panel" routerLinkActive="active" class="sap-nav-item">Gobernanza OSAL</a>
+              <a routerLink="/panel" routerLinkActive="active" class="sap-nav-item">
+                {{ authService.tieneRol('SUPER_ADMIN') ? 'Gobernanza y Parametrización' : 'Gobernanza y Usuarios' }}
+              </a>
             }
           </nav>
         }
@@ -49,7 +55,7 @@ import { AuthService } from './core/services/auth.service';
         <!-- IDENTIFICADOR PERMANENTE DE SESIÓN Y ROL EN LA ESQUINA SUPERIOR DERECHA -->
         <div class="sap-identity-zone">
           @if (authService.estaAutenticado()) {
-            <a routerLink="/panel" class="sap-identity-badge" title="Ver detalles de seguridad de mi cuenta">
+            <a routerLink="/panel" class="sap-identity-badge" title="Ver mi resumen personal y cuenta">
               <span class="id-name">{{ authService.usuarioActual()?.nombre_mostrar }}</span>
               <span class="id-role">{{ authService.etiquetaRolPrincipal() }}</span>
             </a>

@@ -32,7 +32,11 @@ def requiere_roles(*roles_permitidos: str):
             identidad = get_jwt_identity()
             usuario_id = int(identidad) if identidad else None
 
-            if roles_permitidos and not roles_usuario.intersection(set(roles_permitidos)):
+            roles_efectivos = set(roles_permitidos)
+            if "ADMIN" in roles_efectivos:
+                roles_efectivos.add("SUPER_ADMIN")
+
+            if roles_efectivos and not roles_usuario.intersection(roles_efectivos):
                 db.session.add(LogAuditoria(
                     usuario_id=usuario_id,
                     accion="ACCESO_RESTRINGIDO",
