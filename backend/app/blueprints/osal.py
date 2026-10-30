@@ -45,6 +45,13 @@ def registrar_osal():
     tipo_documento_id = data.get("tipo_documento_id")
 
     documentos_legales = data.get("documentos_legales") or []
+    acepta_tratamiento_datos = data.get("acepta_tratamiento_datos", True)
+
+    if not acepta_tratamiento_datos:
+        return jsonify({
+            "error": "Autorización de Habeas Data requerida",
+            "mensaje_humano": "De conformidad con la Ley Estatutaria 1581 de 2012 (Habeas Data), debes autorizar el tratamiento de datos personales e institucionales para radicar la solicitud."
+        }), 400
 
     if not all([nit, razon_social, mision, telefono_institucional, municipio_id, vereda_o_barrio, direccion_fisica, correo_representante, nombres_rep, apellidos_rep]):
         return jsonify({
@@ -99,7 +106,8 @@ def registrar_osal():
     nuevo_usuario = Usuario(
         correo_electronico=correo_representante,
         hash_contrasena=generate_password_hash(contrasena),
-        esta_activo=True
+        esta_activo=True,
+        acepta_tratamiento_datos=True
     )
     db.session.add(nuevo_usuario)
     db.session.flush()
@@ -143,6 +151,7 @@ def registrar_osal():
         mision=mision,
         telefono_institucional=telefono_institucional,
         estado_validacion="PENDIENTE",
+        acepta_tratamiento_datos=True,
         fecha_constitucion=fecha_const
     )
     db.session.add(nueva_fundacion)

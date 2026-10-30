@@ -74,10 +74,35 @@ def obtener_metricas_osal():
     entregados = sum(1 for de in esp_filtradas if de.estado_logistico_actual == "ENTREGADO")
 
     resumen_campanas = []
+    ods_agrupado = {}
+    total_necesidades_req = 0.0
+    total_necesidades_cub = 0.0
+
     for c in campanas:
         meta = float(c.meta_economica or 0)
         rec = float(c.monto_recaudado or 0)
         porcentaje = round((rec / meta) * 100, 1) if meta > 0 else 0.0
+        for nec in c.necesidades:
+            req_n = float(nec.cantidad_requerida or 0)
+            cub_n = float(nec.cantidad_cubierta or 0)
+            if req_n > 0:
+                total_necesidades_req += 1.0
+                total_necesidades_cub += min(1.0, cub_n / req_n)
+
+        if c.ods:
+            clave_ods = c.ods.numero_ods
+            if clave_ods not in ods_agrupado:
+                ods_agrupado[clave_ods] = {
+                    "numero_ods": c.ods.numero_ods,
+                    "titulo_ods": c.ods.titulo,
+                    "campanas_asociadas": 0,
+                    "recaudo_cop": 0.0,
+                    "meta_cop": 0.0
+                }
+            ods_agrupado[clave_ods]["campanas_asociadas"] += 1
+            ods_agrupado[clave_ods]["recaudo_cop"] += rec
+            ods_agrupado[clave_ods]["meta_cop"] += meta
+
         resumen_campanas.append({
             "id": c.id,
             "titulo": c.titulo,
@@ -87,12 +112,23 @@ def obtener_metricas_osal():
                 if (c.fundacion and c.fundacion.direccion and c.fundacion.direccion.municipio)
                 else "Sabana Norte"
             ),
+            "ods": f"ODS {c.ods.numero_ods}: {c.ods.titulo}" if c.ods else "ODS Territorial",
             "meta_economica": meta,
             "monto_recaudado": rec,
             "porcentaje_avance": min(100.0, porcentaje),
             "total_necesidades": len(c.necesidades),
             "estado": c.estado
         })
+
+    impacto_por_ods = []
+    for k in sorted(ods_agrupado.keys()):
+        item_ods = ods_agrupado[k]
+        m_ods = item_ods["meta_cop"]
+        r_ods = item_ods["recaudo_cop"]
+        item_ods["porcentaje_avance"] = round((r_ods / m_ods) * 100, 1) if m_ods > 0 else 0.0
+        impacto_por_ods.append(item_ods)
+
+    tasa_cobertura_nec = round((total_necesidades_cub / total_necesidades_req) * 100, 1) if total_necesidades_req > 0 else 0.0
 
     voluntarios_postulados = []
     for p in post_filtradas:
@@ -137,13 +173,15 @@ def obtener_metricas_osal():
             "voluntarios_activos": total_voluntarios,
             "postulaciones_voluntariado": len(post_filtradas),
             "horas_voluntariado_comprometidas": int(horas_comprometidas),
-            "donaciones_especie_totales": len(esp_filtradas)
+            "donaciones_especie_totales": len(esp_filtradas),
+            "tasa_cobertura_necesidades_pct": tasa_cobertura_nec
         },
         "logistica_especie": {
             "recibido": recibidos,
             "en_bodega": en_bodega,
             "entregado": entregados
         },
+        "impacto_por_ods": impacto_por_ods,
         "campanas_desempeno": resumen_campanas,
         "voluntarios_postulados": voluntarios_postulados
     }), 200

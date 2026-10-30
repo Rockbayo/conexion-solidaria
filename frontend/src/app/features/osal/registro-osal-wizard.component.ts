@@ -27,6 +27,7 @@ interface BorradorOsalWizard {
   contrasena: string;
   nombre_rut: string;
   nombre_camara: string;
+  acepta_tratamiento_datos: boolean;
 }
 
 @Component({
@@ -250,6 +251,16 @@ interface BorradorOsalWizard {
                 </div>
               </div>
 
+              <div class="habeas-box">
+                <label class="habeas-check">
+                  <input type="checkbox" name="habeas_data" [(ngModel)]="form.acepta_tratamiento_datos" (ngModelChange)="persistirBorrador()" required />
+                  <span>
+                    <strong>Autorización de Tratamiento de Datos (Ley Estatutaria 1581 de 2012 y Decreto 1377 de 2013):</strong>
+                    Autorizo de manera libre, previa, expresa e informada a <em>Conexión Solidaria</em> para recolectar, almacenar, verificar y publicar los datos institucionales, geográficos y soportes jurídicos de la organización con fines misionales de articulación social, voluntariado y certificación tributaria. *
+                  </span>
+                </label>
+              </div>
+
               <div class="wizard-actions">
                 <button type="button" class="sap-btn-secondary" (click)="irAlPaso(2)">
                   Regresar
@@ -403,6 +414,27 @@ interface BorradorOsalWizard {
       border: 0;
       border-top: 1px solid var(--sap-border-subtle);
     }
+    .habeas-box {
+      padding: 0.9rem 1rem;
+      background: #F8FAFC;
+      border: 1px solid var(--sap-border-subtle);
+      border-left: 4px solid var(--sap-brand-primary);
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    .habeas-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      font-size: 0.85rem;
+      line-height: 1.45;
+      cursor: pointer;
+    }
+    .habeas-check input[type="checkbox"] {
+      margin-top: 0.25rem;
+      width: 18px;
+      height: 18px;
+    }
   `]
 })
 export class RegistroOsalWizardComponent implements OnInit {
@@ -428,6 +460,7 @@ export class RegistroOsalWizardComponent implements OnInit {
     if (borrador) {
       if (borrador.nombre_rut === 'RUT_Fundacion_SabanaNorte.pdf') borrador.nombre_rut = '';
       if (borrador.nombre_camara === 'Certificado_Existencia_OSAL.pdf') borrador.nombre_camara = '';
+      if (typeof borrador.acepta_tratamiento_datos !== 'boolean') borrador.acepta_tratamiento_datos = false;
       this.form = borrador;
       this.mensajeGuardadoOffline.set(
         'Restauramos automáticamente el avance de tu solicitud para que continúes donde ibas.'
@@ -457,6 +490,7 @@ export class RegistroOsalWizardComponent implements OnInit {
       contrasena: '',
       nombre_rut: '',
       nombre_camara: '',
+      acepta_tratamiento_datos: false,
     };
   }
 
@@ -507,6 +541,13 @@ export class RegistroOsalWizardComponent implements OnInit {
     if (!this.form.nombre_rut.trim() || !this.form.nombre_camara.trim()) {
       this.mensajeError.set(
         'No es posible radicar la solicitud sin los soportes legales. Por favor adjunta tanto el archivo del RUT (DIAN) como el Certificado de Existencia y Representación Legal.'
+      );
+      return;
+    }
+
+    if (!this.form.acepta_tratamiento_datos) {
+      this.mensajeError.set(
+        'Para continuar debes marcar la casilla de Autorización de Tratamiento de Datos Personales conforme a la Ley 1581 de 2012 (Habeas Data).'
       );
       return;
     }

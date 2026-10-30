@@ -15,17 +15,27 @@ interface DashboardMetricas {
     postulaciones_voluntariado: number;
     horas_voluntariado_comprometidas: number;
     donaciones_especie_totales: number;
+    tasa_cobertura_necesidades_pct?: number;
   };
   logistica_especie: {
     recibido: number;
     en_bodega: number;
     entregado: number;
   };
+  impacto_por_ods?: Array<{
+    numero_ods: number;
+    titulo_ods: string;
+    campanas_asociadas: number;
+    recaudo_cop: number;
+    meta_cop: number;
+    porcentaje_avance: number;
+  }>;
   campanas_desempeno: Array<{
     id: number;
     titulo: string;
     fundacion: string;
     municipio: string;
+    ods?: string;
     meta_economica: number;
     monto_recaudado: number;
     porcentaje_avance: number;
@@ -92,7 +102,7 @@ interface DashboardMetricas {
               <span class="sap-badge sap-badge-info">Sabana Norte</span>
             </div>
             <strong class="kpi-value">{{ d.kpis.campanas_activas }} Campañas</strong>
-            <span class="kpi-sub">{{ d.kpis.fundaciones_registradas }} organización(es) activa(s)</span>
+            <span class="kpi-sub">{{ d.kpis.fundaciones_registradas }} organización(es) activa(s) · Cobertura necesidades: {{ d.kpis.tasa_cobertura_necesidades_pct || 0 }}%</span>
           </article>
 
           <article class="cs-card kpi-card">
@@ -106,6 +116,34 @@ interface DashboardMetricas {
             </span>
           </article>
         </section>
+
+        @if (d.impacto_por_ods && d.impacto_por_ods.length > 0) {
+          <section class="cs-card table-card" style="margin-bottom: 1.5rem;" aria-label="Trazabilidad de contribución a los ODS">
+            <div class="table-head">
+              <div>
+                <h2>Indicadores de Validación de Impacto por Objetivos de Desarrollo Sostenible (ODS)</h2>
+                <p class="sub-head">Métricas empíricas del MVP para contrastar la hipótesis de canalización de recursos por eje temático.</p>
+              </div>
+              <span class="sap-badge sap-badge-info">{{ d.impacto_por_ods.length }} ODS Vinculados</span>
+            </div>
+            <div class="kpi-grid" style="margin-bottom: 0;">
+              @for (itemOds of d.impacto_por_ods; track itemOds.numero_ods) {
+                <article class="camp-row">
+                  <div class="camp-row-head">
+                    <strong>ODS {{ itemOds.numero_ods }}: {{ itemOds.titulo_ods }}</strong>
+                    <span class="sap-badge sap-badge-ok">{{ itemOds.porcentaje_avance }}%</span>
+                  </div>
+                  <p style="margin: 0.25rem 0 0.5rem 0; font-size: 0.83rem; color: var(--sap-text-secondary);">
+                    {{ itemOds.campanas_asociadas }} campaña(s) activa(s) · Recaudo: \${{ itemOds.recaudo_cop | number:'1.0-0' }} / Meta: \${{ itemOds.meta_cop | number:'1.0-0' }} COP
+                  </p>
+                  <div class="bar-bg" style="margin-bottom: 0;">
+                    <div class="bar-fill" [style.width.%]="itemOds.porcentaje_avance"></div>
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+        }
 
         <section class="cs-card table-card" aria-label="Estado de ejecución por programa">
           <div class="table-head">

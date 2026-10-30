@@ -28,6 +28,17 @@ def aplicar_migraciones_incrementales() -> None:
         cols = {c["name"] for c in inspector.get_columns("usuarios")}
         if "intentos_fallidos" not in cols:
             db.session.execute(text("ALTER TABLE usuarios ADD COLUMN intentos_fallidos INTEGER NOT NULL DEFAULT 0"))
+        if "acepta_tratamiento_datos" not in cols:
+            db.session.execute(text("ALTER TABLE usuarios ADD COLUMN acepta_tratamiento_datos BOOLEAN NOT NULL DEFAULT 1"))
+        if "fecha_aceptacion_datos" not in cols:
+            db.session.execute(text("ALTER TABLE usuarios ADD COLUMN fecha_aceptacion_datos DATETIME NULL"))
+
+    if "fundaciones_osal" in tablas:
+        cols = {c["name"] for c in inspector.get_columns("fundaciones_osal")}
+        if "acepta_tratamiento_datos" not in cols:
+            db.session.execute(text("ALTER TABLE fundaciones_osal ADD COLUMN acepta_tratamiento_datos BOOLEAN NOT NULL DEFAULT 1"))
+        if "fecha_aceptacion_datos" not in cols:
+            db.session.execute(text("ALTER TABLE fundaciones_osal ADD COLUMN fecha_aceptacion_datos DATETIME NULL"))
 
     if "necesidades_campana" in tablas:
         cols = {c["name"] for c in inspector.get_columns("necesidades_campana")}
@@ -165,10 +176,283 @@ def asegurar_datos_parametrizacion() -> None:
             "Correo institucional de soporte y notificaciones de Conexión Solidaria Sabana Norte",
             "TEXTO"
         ),
+        (
+            "POLITICA_HABEAS_DATA_LEY_1581",
+            "Ley Estatutaria 1581 de 2012 y Decreto Reglamentario 1377 de 2013 - Autorización expresa de tratamiento de datos personales con fines misionales y tributarios",
+            "Normativa de Protección de Datos Personales exigida en el registro de organizaciones, donantes y voluntarios",
+            "TEXTO"
+        ),
     ]
     for clave, valor, desc, tipo in parametros_base:
         if not ParametroSistema.query.filter_by(clave=clave).first():
             db.session.add(ParametroSistema(clave=clave, valor=valor, descripcion=desc, tipo_dato=tipo))
+
+    # ODS alineados con el documento entregable (ODS 1, 2, 3, 4, 9, 10, 11, 15 y 17)
+    ods_catalogo = [
+        (1, "Fin de la Pobreza", "Erradicar la pobreza rural extrema y vulnerabilidad socioeconómica"),
+        (2, "Hambre Cero", "Seguridad alimentaria, comedores comunitarios y agricultura campesina sostenible"),
+        (3, "Salud y Bienestar", "Atención integral al adulto mayor, primera infancia y personas con discapacidad"),
+        (4, "Educación de Calidad", "Educación rural inclusiva, refuerzo escolar y alfabetización digital veredal"),
+        (9, "Industria, Innovación e Infraestructura", "Apropiación de TIC e infraestructura comunitaria resiliente en zonas rurales"),
+        (10, "Reducción de las Desigualdades", "Inclusión social, cierre de brecha digital rural-urbana y equidad territorial"),
+        (11, "Ciudades y Comunidades Sostenibles", "Fortalecimiento del tejido comunitario veredal, cultura y gestión de emergencias"),
+        (15, "Vida de Ecosistemas Terrestres", "Restauración de páramos, cuencas hídricas y bienestar/protección animal"),
+        (17, "Alianzas para lograr los Objetivos", "Articulación entre OSAL rurales, universidades, empresas (RSE) y ciudadanía"),
+    ]
+    for num_ods, titulo_ods, desc_ods in ods_catalogo:
+        ods_obj = OdsObjetivo.query.filter_by(numero_ods=num_ods).first()
+        if not ods_obj:
+            db.session.add(OdsObjetivo(numero_ods=num_ods, titulo=titulo_ods, descripcion=desc_ods))
+        else:
+            ods_obj.titulo = titulo_ods
+            ods_obj.descripcion = desc_ods
+
+    # Categorías de causas sociales alineadas con la Encuesta de Diagnóstico y el Estudio de Mercado
+    categorias_catalogo = [
+        ("Soberanía Alimentaria y Huertas", "Apoyo a familias campesinas, huertas agroecológicas y comedores veredales"),
+        ("Educación y Conectividad Veredal", "Escuelas rurales, bibliotecas comunitarias y alfabetización digital"),
+        ("Conservación de Páramos y Agua", "Reforestación de especies nativas y protección de microcuencas en la Sabana"),
+        ("Proteccionismo y Bienestar Animal", "Rescate, esterilización, albergue y alimentación de fauna doméstica vulnerable"),
+        ("Adulto Mayor y Vulnerabilidad Rural", "Cuidado integral, salud, nutrición y acompañamiento a personas mayores en veredas"),
+        ("Cultura, Arte y Desarrollo Comunitario", "Tejido social, saberes campesinos y liderazgo juvenil rural"),
+    ]
+    for nom_cat, desc_cat in categorias_catalogo:
+        if not CategoriaCausa.query.filter_by(nombre=nom_cat).first():
+            db.session.add(CategoriaCausa(nombre=nom_cat, descripcion=desc_cat))
+
+    db.session.flush()
+
+    # Muestra verificable de 5 Fundaciones caracterizadas en la Sabana (Cogua, Chía, Cajicá, Zipaquirá, Tabio)
+    rol_osal = Rol.query.filter_by(codigo="REPRESENTANTE_OSAL").first()
+    td_cc = TipoDocumento.query.filter_by(sigla="CC").first()
+    tn_esp = TipoNecesidad.query.filter_by(codigo="ESPECIE").first()
+    tn_vol = TipoNecesidad.query.filter_by(codigo="TIEMPO_VOLUNTARIADO").first()
+    tn_eco = TipoNecesidad.query.filter_by(codigo="ECONOMICA").first()
+    um_kg = UnidadMedida.query.filter_by(simbolo="KG").first()
+    um_und = UnidadMedida.query.filter_by(simbolo="UND").first()
+
+    muestra_fundaciones = [
+        {
+            "nit": "901512340-2",
+            "razon_social": "Fundación Huellas y Refugio de la Sabana",
+            "sigla": "FUNHUELLAS",
+            "mision": "Rescate, rehabilitación veterinaria, esterilización y adopción responsable de caninos y felinos abandonados en zonas veredales de Cajicá y Chía.",
+            "telefono": "3124895510",
+            "fecha_const": date(2020, 6, 12),
+            "municipio_nombre": "Cajicá",
+            "vereda": "Vereda Chuntame",
+            "direccion": "Km 2.5 Vía Cajicá - Tabio, Sector El Molino",
+            "indicaciones": "Portón verde a 300 metros del cruce veredal",
+            "latitud": 4.9245,
+            "longitud": -74.0380,
+            "correo": "huellas@cajicasolidaria.org",
+            "nombres_rep": "Camilo Ernesto",
+            "apellidos_rep": "Poveda Rincón",
+            "doc_rep": "80765432",
+            "categoria_nombre": "Proteccionismo y Bienestar Animal",
+            "numero_ods": 15,
+            "campana_titulo": "Jornada de Esterilización y Banco de Alimento para 90 Animales Rescatados",
+            "campana_desc": "Recolección de concentrado, medicamentos veterinarios y brigada quirúrgica preventiva en veredas de Cajicá.",
+            "meta_eco": 8500000.00,
+            "recaudo_eco": 2450000.00,
+            "necesidades": [
+                ("ESPECIE", "KG", "Concentrado adulto e infantil para perros y gatos en refugio", 450, 140, "ALTA"),
+                ("TIEMPO_VOLUNTARIADO", "HORAS", "Apoyo logístico y cuidado postoperatorio en jornada de esterilización", 32, 8, "ALTA"),
+            ]
+        },
+        {
+            "nit": "901634890-5",
+            "razon_social": "Asociación Comedor y Saberes del Adulto Mayor Campesino",
+            "sigla": "ASOMAYOR",
+            "mision": "Garantizar nutrición digna, atención psicosocial y preservación de saberes tradicionales para adultos mayores vulnerables en veredas altas de Zipaquirá y Nemocón.",
+            "telefono": "3147723190",
+            "fecha_const": date(2018, 9, 20),
+            "municipio_nombre": "Zipaquirá",
+            "vereda": "Vereda Páramo de Guerrero",
+            "direccion": "Salón Comunal San Isidro, Km 7 Vía Pacho",
+            "indicaciones": "Junto a la capilla rural del sector alto",
+            "latitud": 5.0380,
+            "longitud": -74.0195,
+            "correo": "asomayor@zipaquirarural.org",
+            "nombres_rep": "Rosa Elvira",
+            "apellidos_rep": "Montaña Castañeda",
+            "doc_rep": "35498120",
+            "categoria_nombre": "Adulto Mayor y Vulnerabilidad Rural",
+            "numero_ods": 2,
+            "campana_titulo": "Canasta Nutricional y Abrigo Térmico para 65 Abuelos del Páramo",
+            "campana_desc": "Entrega mensual de mercados campesinos, frazadas térmicas y brigadas de salud preventiva en veredas altas de Zipaquirá.",
+            "meta_eco": 12000000.00,
+            "recaudo_eco": 4900000.00,
+            "necesidades": [
+                ("ESPECIE", "KIT", "Mercados nutricionales básicos (granos, proteína, lácteos y panela)", 65, 28, "ALTA"),
+                ("TIEMPO_VOLUNTARIADO", "HORAS", "Acompañamiento en salud comunitaria y entrega puerta a puerta en vereda", 24, 10, "MEDIA"),
+            ]
+        },
+        {
+            "nit": "901789123-8",
+            "razon_social": "Fundación Aula Digital y Semillas de Yerbabuena",
+            "sigla": "FUNDAULA",
+            "mision": "Cerrar la brecha digital y fortalecer las competencias tecnológicas, lectoras y científicas de niños y jóvenes campesinos en las veredas de Chía y Sopó.",
+            "telefono": "3106541287",
+            "fecha_const": date(2021, 2, 10),
+            "municipio_nombre": "Chía",
+            "vereda": "Vereda Yerbabuena",
+            "direccion": "Sector La Balsa, Casa Cultural Comunitaria Lote 8",
+            "indicaciones": "Subiendo 1.2 km por la vía a la escuela rural de Yerbabuena",
+            "latitud": 4.8790,
+            "longitud": -74.0180,
+            "correo": "aularural@chiasolidaria.org",
+            "nombres_rep": "Diana Marcela",
+            "apellidos_rep": "Ospina Cárdenas",
+            "doc_rep": "52987341",
+            "categoria_nombre": "Educación y Conectividad Veredal",
+            "numero_ods": 4,
+            "campana_titulo": "Laboratorio de Cómputo y Tutorías STEAM para Niñez Veredal",
+            "campana_desc": "Dotación de equipos portátiles reacondicionados, routers de conectividad comunitaria y talleres sabatinos de programación y lectura.",
+            "meta_eco": 18000000.00,
+            "recaudo_eco": 6200000.00,
+            "necesidades": [
+                ("ESPECIE", "UND", "Equipos portátiles o tabletas funcionales para aula rural", 20, 7, "ALTA"),
+                ("TIEMPO_VOLUNTARIADO", "HORAS", "Tutorías presenciales en alfabetización digital, matemáticas e inglés", 48, 16, "ALTA"),
+            ]
+        },
+        {
+            "nit": "901845610-4",
+            "razon_social": "Corporación Ambiental Guardianes del Río Frío y Juaica",
+            "sigla": "CORPOJUAICA",
+            "mision": "Restauración ecológica participativa de nacederos de agua, viverismo comunitario de bosque altoandino y educación ambiental en Tabio y Tenjo.",
+            "telefono": "3183349012",
+            "fecha_const": date(2017, 11, 5),
+            "municipio_nombre": "Tabio",
+            "vereda": "Vereda Río Frío Oriental",
+            "direccion": "Vivero Comunitario El Chuscal, Km 5 Vía Subachoque",
+            "indicaciones": "Entrada por el sendero ecológico de la quebrada",
+            "latitud": 4.9380,
+            "longitud": -74.1025,
+            "correo": "guardianes@tabioambiental.org",
+            "nombres_rep": "Jorge Enrique",
+            "apellidos_rep": "Santamaría León",
+            "doc_rep": "79654812",
+            "categoria_nombre": "Conservación de Páramos y Agua",
+            "numero_ods": 15,
+            "campana_titulo": "Siembra de 1.500 Árboles Nativos en Nacederos de Tabio y Tenjo",
+            "campana_desc": "Propagación en vivero veredal y jornadas comunitarias de reforestación con aliso, arrayán y roble para proteger acueductos rurales.",
+            "meta_eco": 9500000.00,
+            "recaudo_eco": 3100000.00,
+            "necesidades": [
+                ("ESPECIE", "UND", "Plántulas nativas, bolsas de vivero y herramientas de ahoyado", 1500, 480, "ALTA"),
+                ("TIEMPO_VOLUNTARIADO", "HORAS", "Jornadas sabatinas de siembra y mantenimiento de vivero en alta montaña", 60, 20, "ALTA"),
+            ]
+        },
+    ]
+
+    for item in muestra_fundaciones:
+        if not FundacionOsal.query.filter_by(nit=item["nit"]).first():
+            muni = Municipio.query.filter_by(nombre=item["municipio_nombre"]).first()
+            if not muni:
+                continue
+            nueva_dir = Direccion(
+                municipio_id=muni.id,
+                vereda_o_barrio=item["vereda"],
+                direccion_fisica=item["direccion"],
+                indicaciones_rurales=item["indicaciones"],
+                latitud=item["latitud"],
+                longitud=item["longitud"]
+            )
+            db.session.add(nueva_dir)
+            db.session.flush()
+
+            u_rep = Usuario.query.filter_by(correo_electronico=item["correo"]).first()
+            if not u_rep:
+                u_rep = Usuario(
+                    correo_electronico=item["correo"],
+                    hash_contrasena=generate_password_hash("Solidaria2026*"),
+                    esta_activo=True,
+                    acepta_tratamiento_datos=True
+                )
+                db.session.add(u_rep)
+                db.session.flush()
+                if rol_osal:
+                    db.session.add(UsuarioRol(usuario_id=u_rep.id, rol_id=rol_osal.id))
+                p_rep = Persona(
+                    usuario_id=u_rep.id,
+                    direccion_id=nueva_dir.id,
+                    nombres=item["nombres_rep"],
+                    apellidos=item["apellidos_rep"],
+                    telefono_contacto=item["telefono"]
+                )
+                db.session.add(p_rep)
+                db.session.flush()
+                if td_cc and not DocumentoIdentidad.query.filter_by(numero_documento=item["doc_rep"]).first():
+                    db.session.add(DocumentoIdentidad(
+                        persona_id=p_rep.id,
+                        tipo_documento_id=td_cc.id,
+                        numero_documento=item["doc_rep"]
+                    ))
+
+            nueva_fund = FundacionOsal(
+                usuario_representante_id=u_rep.id,
+                direccion_id=nueva_dir.id,
+                nit=item["nit"],
+                razon_social=item["razon_social"],
+                sigla=item["sigla"],
+                mision=item["mision"],
+                telefono_institucional=item["telefono"],
+                estado_validacion="APROBADA",
+                acepta_tratamiento_datos=True,
+                fecha_constitucion=item["fecha_const"]
+            )
+            db.session.add(nueva_fund)
+            db.session.flush()
+
+            db.session.add_all([
+                DocumentoLegalOsal(
+                    fundacion_id=nueva_fund.id,
+                    tipo_soporte="RUT_DIAN",
+                    nombre_archivo=f"RUT_{item['nit']}.pdf",
+                    url_archivo=f"/uploads/osal/{nueva_fund.id}/RUT_{item['nit']}.pdf",
+                    estado_revision="APROBADO"
+                ),
+                DocumentoLegalOsal(
+                    fundacion_id=nueva_fund.id,
+                    tipo_soporte="CERTIFICADO_EXISTENCIA_CAMARA",
+                    nombre_archivo=f"CamaraComercio_{item['nit']}.pdf",
+                    url_archivo=f"/uploads/osal/{nueva_fund.id}/CamaraComercio_{item['nit']}.pdf",
+                    estado_revision="APROBADO"
+                ),
+            ])
+
+            cat_obj = CategoriaCausa.query.filter_by(nombre=item["categoria_nombre"]).first()
+            ods_obj = OdsObjetivo.query.filter_by(numero_ods=item["numero_ods"]).first()
+            if cat_obj and ods_obj:
+                camp = Campana(
+                    fundacion_id=nueva_fund.id,
+                    categoria_causa_id=cat_obj.id,
+                    ods_id=ods_obj.id,
+                    titulo=item["campana_titulo"],
+                    descripcion=item["campana_desc"],
+                    meta_economica=item["meta_eco"],
+                    monto_recaudado=item["recaudo_eco"],
+                    fecha_inicio=date(2026, 2, 1),
+                    fecha_fin=date(2026, 12, 15),
+                    estado="ACTIVA"
+                )
+                db.session.add(camp)
+                db.session.flush()
+
+                for cod_tipo, cod_um, desc_nec, cant_req, cant_cub, prio in item["necesidades"]:
+                    tn_ref = tn_esp if cod_tipo == "ESPECIE" else (tn_vol if cod_tipo == "TIEMPO_VOLUNTARIADO" else tn_eco)
+                    um_ref = UnidadMedida.query.filter_by(simbolo=cod_um).first()
+                    if tn_ref:
+                        db.session.add(NecesidadCampana(
+                            campana_id=camp.id,
+                            tipo_necesidad_id=tn_ref.id,
+                            unidad_medida_id=um_ref.id if um_ref else None,
+                            descripcion_item=desc_nec,
+                            cantidad_requerida=cant_req,
+                            cantidad_cubierta=cant_cub,
+                            prioridad=prio
+                        ))
 
     db.session.commit()
 

@@ -1,7 +1,7 @@
 """
-Modelo de Base de Datos Relacional en Quinta Forma Normal (5FN) - 32 Tablas
-Agrupadas en 7 Módulos Arquitectónicos para "Conexión Solidaria" (Sabana Norte de Cundinamarca).
-Nomenclatura estricta: snake_case y llaves foráneas integrales.
+Modelo de Base de Datos Relacional en Quinta Forma Normal (5FN) - 34 Tablas
+Agrupadas en 7 Módulos Arquitectónicos para "Conexión Solidaria" (Sabana Centro y Norte de Cundinamarca).
+Nomenclatura estricta: snake_case, integridad referencial y cumplimiento Ley 1581 de 2012 (Habeas Data).
 """
 from datetime import datetime, timezone
 from app.extensions import db
@@ -34,6 +34,8 @@ class Usuario(db.Model):
     hash_contrasena = db.Column(db.String(255), nullable=False)
     esta_activo = db.Column(db.Boolean, default=True, nullable=False)
     intentos_fallidos = db.Column(db.Integer, default=0, nullable=False)
+    acepta_tratamiento_datos = db.Column(db.Boolean, default=True, nullable=False)  # Ley 1581 de 2012 (Habeas Data)
+    fecha_aceptacion_datos = db.Column(db.DateTime, default=utc_now, nullable=True)
     fecha_registro = db.Column(db.DateTime, default=utc_now, nullable=False)
     ultimo_acceso = db.Column(db.DateTime, nullable=True)
 
@@ -190,6 +192,8 @@ class FundacionOsal(db.Model):
     mision = db.Column(db.Text, nullable=False)
     telefono_institucional = db.Column(db.String(30), nullable=False)
     estado_validacion = db.Column(db.String(30), default="PENDIENTE", nullable=False)  # PENDIENTE, APROBADA, RECHAZADA
+    acepta_tratamiento_datos = db.Column(db.Boolean, default=True, nullable=False)  # Ley 1581 de 2012 (Habeas Data)
+    fecha_aceptacion_datos = db.Column(db.DateTime, default=utc_now, nullable=True)
     fecha_constitucion = db.Column(db.Date, nullable=True)
     fecha_registro = db.Column(db.DateTime, default=utc_now, nullable=False)
 
