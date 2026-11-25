@@ -88,14 +88,19 @@ const PINES_FALLBACK_SABANA: PinSabanaNorte[] = [
             <h2>Directorio de Sedes en el Territorio</h2>
           </div>
 
-          @for (p of pines(); track p.fundacion_id) {
+          @for (p of pines(); track p.fundacion_id; let idx = $index) {
             <article class="cs-card pin-card" (click)="centrarPinEnMapa(p)" tabindex="0">
-              <div class="pin-top">
-                <span class="sap-badge sap-badge-info">{{ p.municipio_nombre }} · {{ p.vereda_o_barrio }}</span>
-                <span class="sap-badge sap-badge-ok">{{ p.estado_validacion === 'APROBADA' ? 'Verificada' : p.estado_validacion }}</span>
+              <div class="pin-card-media">
+                <img [src]="obtenerImagenFundacion(p, idx)" [alt]="p.razon_social" class="pin-thumb" />
+                <div class="pin-card-body">
+                  <div class="pin-top">
+                    <span class="sap-badge sap-badge-info">{{ p.municipio_nombre }} · {{ p.vereda_o_barrio }}</span>
+                    <span class="sap-badge sap-badge-ok">{{ p.estado_validacion === 'APROBADA' ? 'Verificada' : p.estado_validacion }}</span>
+                  </div>
+                  <h3>{{ p.razon_social }}</h3>
+                  <p class="dir-text">{{ p.direccion_fisica }} — {{ p.indicaciones_rurales || 'Sector rural' }}</p>
+                </div>
               </div>
-              <h3>{{ p.razon_social }}</h3>
-              <p class="dir-text">{{ p.direccion_fisica }} — {{ p.indicaciones_rurales || 'Sector rural' }}</p>
               <div class="meta-strip">
                 <span>NIT: {{ p.nit }}</span>
                 <span>Tel: {{ p.telefono || 'Sin registro' }}</span>
@@ -125,11 +130,14 @@ const PINES_FALLBACK_SABANA: PinSabanaNorte[] = [
     .leaflet-canvas { width: 100%; height: 540px; border-radius: 6px; border: 1px solid var(--sap-border-subtle); }
     .pins-sidebar { display: flex; flex-direction: column; gap: 0.9rem; }
     .sidebar-header h2 { margin: 0; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--sap-text-secondary); }
-    .pin-card { cursor: pointer; border-left: 4px solid var(--sap-brand-primary); padding: 1.15rem; transition: box-shadow 0.15s ease, transform 0.15s ease; }
+    .pin-card { cursor: pointer; border-left: 4px solid var(--sap-brand-primary); padding: 0.95rem 1.05rem; transition: box-shadow 0.15s ease, transform 0.15s ease; }
     .pin-card:hover { transform: translateY(-2px); }
-    .pin-top { display: flex; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
-    .pin-card h3 { margin: 0.2rem 0; font-size: 1.05rem; }
-    .dir-text { margin: 0.25rem 0 0.6rem 0; font-size: 0.88rem; color: var(--sap-text-secondary); }
+    .pin-card-media { display: flex; gap: 0.85rem; align-items: flex-start; margin-bottom: 0.55rem; }
+    .pin-thumb { width: 84px; height: 84px; border-radius: 8px; object-fit: cover; object-position: center 20%; flex-shrink: 0; border: 1px solid var(--sap-border-subtle); box-shadow: 0 2px 6px rgba(15,23,42,0.1); }
+    .pin-card-body { flex: 1; min-width: 0; }
+    .pin-top { display: flex; justify-content: space-between; gap: 0.4rem; margin-bottom: 0.35rem; flex-wrap: wrap; }
+    .pin-card h3 { margin: 0.15rem 0; font-size: 0.98rem; line-height: 1.25; }
+    .dir-text { margin: 0.2rem 0 0.25rem 0; font-size: 0.83rem; color: var(--sap-text-secondary); }
     .meta-strip { display: flex; justify-content: space-between; font-size: 0.78rem; font-family: monospace; color: var(--sap-text-secondary); padding: 0.4rem 0.6rem; background: var(--sap-bg-canvas); border-radius: 4px; margin-bottom: 0.8rem; }
     .pin-actions { display: flex; gap: 0.6rem; }
     .btn-sm { min-height: 36px; padding: 0.35rem 0.85rem; font-size: 0.84rem; }
@@ -228,5 +236,29 @@ export class MapaSabanaComponent implements OnInit, AfterViewInit {
     if (this.mapInstance) {
       this.mapInstance.setView([pin.latitud, pin.longitud], 14);
     }
+  }
+
+  obtenerImagenFundacion(p: PinSabanaNorte, idx: number): string {
+    const txt = `${p.razon_social} ${p.sigla} ${p.mision}`.toLowerCase();
+    if (txt.includes('huella') || txt.includes('animal') || txt.includes('patita') || txt.includes('canin')) {
+      return 'assets/social/animales_1.jpeg';
+    }
+    if (txt.includes('adulto') || txt.includes('abuelo') || txt.includes('mayor')) {
+      return 'assets/social/abuelos_1.jpeg';
+    }
+    if (txt.includes('aula') || txt.includes('niñ') || txt.includes('escolar') || txt.includes('educa') || txt.includes('gotita')) {
+      return 'assets/social/ninos_1.jpeg';
+    }
+    if (txt.includes('campamento') || txt.includes('vida nueva') || txt.includes('rehabilita')) {
+      return 'assets/social/campamentos_2.jpeg';
+    }
+    const galeria = [
+      'assets/social/campamentos_1.jpeg',
+      'assets/social/animales_2.jpeg',
+      'assets/social/abuelos_2.jpeg',
+      'assets/social/ninos_3.jpeg',
+      'assets/social/campamentos_3.jpeg',
+    ];
+    return galeria[idx % galeria.length];
   }
 }

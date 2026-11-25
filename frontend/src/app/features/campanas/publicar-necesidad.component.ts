@@ -207,12 +207,15 @@ export interface CampanaItem {
         </section>
       } @else {
         <section class="cards-grid" aria-label="Tarjetas de campañas activas">
-          @for (c of campanas(); track c.id) {
+          @for (c of campanas(); track c.id; let idx = $index) {
             <article class="cs-card campaign-card">
               <div>
-                <div class="card-meta">
-                  <span class="sap-badge sap-badge-info">ODS {{ c.ods.numero }} · {{ c.ods.titulo }}</span>
-                  <span class="sap-badge sap-badge-ok">{{ c.fundacion.municipio }} · {{ c.fundacion.vereda }}</span>
+                <div class="campaign-hero">
+                  <img [src]="obtenerImagenCampana(c, idx)" [alt]="c.titulo" class="campaign-hero-img" />
+                  <div class="campaign-hero-badges">
+                    <span class="sap-badge sap-badge-info">ODS {{ c.ods.numero }} · {{ c.ods.titulo }}</span>
+                    <span class="sap-badge sap-badge-ok">{{ c.fundacion.municipio }} · {{ c.fundacion.vereda }}</span>
+                  </div>
                 </div>
 
                 <h2>{{ c.titulo }}</h2>
@@ -298,6 +301,9 @@ export interface CampanaItem {
     .necesidad-row > * { flex: 1 1 160px; }
     .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1.5rem; }
     .campaign-card { display: flex; flex-direction: column; justify-content: space-between; border-top: 3px solid var(--sap-brand-primary); }
+    .campaign-hero { position: relative; border-radius: 8px; overflow: hidden; height: 158px; margin-bottom: 0.85rem; border: 1px solid var(--sap-border-subtle); background: #0F172A; }
+    .campaign-hero-img { width: 100%; height: 100%; object-fit: cover; object-position: center 38%; display: block; }
+    .campaign-hero-badges { position: absolute; left: 0.65rem; bottom: 0.6rem; right: 0.65rem; display: flex; flex-wrap: wrap; gap: 0.45rem; }
     .card-meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem; }
     .campaign-card h2 { margin: 0 0 0.35rem 0; font-size: 1.2rem; }
     .osal-name { margin: 0; font-size: 0.9rem; color: var(--sap-brand-primary); }
@@ -444,6 +450,33 @@ export class PublicarNecesidadComponent implements OnInit {
     if (codigo === 'ESPECIE') return 'Insumos / Especie';
     if (codigo === 'TIEMPO_VOLUNTARIADO') return 'Voluntariado';
     return codigo;
+  }
+
+  obtenerImagenCampana(c: CampanaItem, idx: number): string {
+    const txt = `${c.titulo} ${c.categoria_causa} ${c.fundacion.razon_social}`.toLowerCase();
+    if (txt.includes('animal') || txt.includes('esteriliza') || txt.includes('huella') || txt.includes('patita')) {
+      return 'assets/social/animales_1.jpeg';
+    }
+    if (txt.includes('abuelo') || txt.includes('adulto mayor') || txt.includes('canasta')) {
+      return 'assets/social/abuelos_2.jpeg';
+    }
+    if (txt.includes('niñ') || txt.includes('cómputo') || txt.includes('aula') || txt.includes('steam') || txt.includes('gotita')) {
+      return 'assets/social/ninos_1.jpeg';
+    }
+    if (txt.includes('huerta') || txt.includes('semilla') || txt.includes('campamento')) {
+      return 'assets/social/campamentos_1.jpeg';
+    }
+    if (txt.includes('árbol') || txt.includes('siembra') || txt.includes('nacedero')) {
+      return 'assets/social/campamentos_3.jpeg';
+    }
+    const galeria = [
+      'assets/social/campamentos_1.jpeg',
+      'assets/social/animales_2.jpeg',
+      'assets/social/abuelos_1.jpeg',
+      'assets/social/ninos_3.jpeg',
+      'assets/social/campamentos_2.jpeg',
+    ];
+    return galeria[idx % galeria.length];
   }
 
   guardarCampana(): void {

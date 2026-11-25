@@ -77,6 +77,26 @@ interface DashboardMetricas {
 
     <main class="sap-container">
       @if (datos(); as d) {
+        <!-- Mosaico fotográfico de evidencia territorial de las fundaciones vinculadas -->
+        <section class="evidence-mosaic" aria-label="Evidencia fotográfica territorial en la Sabana">
+          <div class="ev-item">
+            <img src="assets/social/abuelos_2.jpeg" alt="Adulto mayor campesino beneficiario ODS 2 y 3" />
+            <div class="ev-caption"><strong>ODS 2 y 3 · Adulto Mayor</strong><span>65 abuelos atendidos en veredas altas</span></div>
+          </div>
+          <div class="ev-item">
+            <img src="assets/social/ninos_2.jpeg" alt="Niñez rural beneficiaria ODS 4" />
+            <div class="ev-caption"><strong>ODS 4 · Educación Rural</strong><span>Niñez en refuerzo escolar y STEAM</span></div>
+          </div>
+          <div class="ev-item">
+            <img src="assets/social/animales_1.jpeg" alt="Bienestar animal ODS 15" />
+            <div class="ev-caption"><strong>ODS 15 · Bienestar Animal</strong><span>90 animales rescatados y rehabilitados</span></div>
+          </div>
+          <div class="ev-item">
+            <img src="assets/social/campamentos_3.jpeg" alt="Campamentos de Vida Nueva ODS 10 y 11" />
+            <div class="ev-caption"><strong>ODS 10 y 11 · Tejido Social</strong><span>Rehabilitación y liderazgo comunitario</span></div>
+          </div>
+        </section>
+
         <section class="kpi-grid" aria-label="Indicadores ejecutivos de gestión">
           <article class="cs-card kpi-card">
             <div class="kpi-top">
@@ -217,6 +237,33 @@ interface DashboardMetricas {
   `,
   styles: [`
     .header-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; }
+    .evidence-mosaic {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 900px) { .evidence-mosaic { grid-template-columns: repeat(2, 1fr); } }
+    .ev-item {
+      position: relative;
+      height: 124px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--sap-border-subtle);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+    }
+    .ev-item img { width: 100%; height: 100%; object-fit: cover; object-position: center 38%; display: block; }
+    .ev-caption {
+      position: absolute;
+      inset: auto 0 0 0;
+      padding: 0.45rem 0.65rem;
+      background: linear-gradient(180deg, rgba(15,23,42,0) 0%, rgba(15,23,42,0.92) 100%);
+      color: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+    }
+    .ev-caption strong { font-size: 0.78rem; color: #93C5FD; }
+    .ev-caption span { font-size: 0.73rem; color: #F8FAFC; }
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem; }
     .kpi-card { display: flex; flex-direction: column; gap: 0.45rem; border-top: 3px solid var(--sap-brand-primary); }
     .kpi-top { display: flex; justify-content: space-between; align-items: center; }

@@ -65,6 +65,26 @@ interface ResumenDisponibilidad {
     </div>
 
     <main class="sap-container">
+      <!-- Galería visual de jornadas reales de voluntariado en las veredas -->
+      <section class="vol-photo-strip" aria-label="Jornadas reales de voluntariado en la Sabana">
+        <div class="vol-photo-card">
+          <img src="assets/social/campamentos_1.jpeg" alt="Jornada comunitaria Campamentos de Vida Nueva" />
+          <span>Trabajo Comunitario y Juventud</span>
+        </div>
+        <div class="vol-photo-card">
+          <img src="assets/social/ninos_3.jpeg" alt="Tutorías y recreación infantil rural" />
+          <span>Educación y Primera Infancia</span>
+        </div>
+        <div class="vol-photo-card">
+          <img src="assets/social/animales_2.jpeg" alt="Cuidado y baño de caninos rescatados" />
+          <span>Brigadas de Bienestar Animal</span>
+        </div>
+        <div class="vol-photo-card">
+          <img src="assets/social/abuelos_1.jpeg" alt="Acompañamiento al adulto mayor campesino" />
+          <span>Cuidado del Adulto Mayor Rural</span>
+        </div>
+      </section>
+
       <!-- Barra informativa de cupo horario del voluntario -->
       <section class="capacity-strip" aria-label="Tu disponibilidad semanal registrada">
         <div class="cap-item">
@@ -196,6 +216,31 @@ interface ResumenDisponibilidad {
   `,
   styles: [`
     .header-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; align-items: center; }
+    .vol-photo-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.85rem;
+      margin-bottom: 1.15rem;
+    }
+    @media (max-width: 900px) { .vol-photo-strip { grid-template-columns: repeat(2, 1fr); } }
+    .vol-photo-card {
+      position: relative;
+      height: 118px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--sap-border-subtle);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+    }
+    .vol-photo-card img { width: 100%; height: 100%; object-fit: cover; object-position: center 38%; display: block; }
+    .vol-photo-card span {
+      position: absolute;
+      inset: auto 0 0 0;
+      padding: 0.35rem 0.6rem;
+      background: linear-gradient(180deg, rgba(15,23,42,0) 0%, rgba(15,23,42,0.88) 100%);
+      color: #FFFFFF;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
     .capacity-strip {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

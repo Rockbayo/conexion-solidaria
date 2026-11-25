@@ -29,7 +29,7 @@ def create_app(config_class=Config):
         os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist", "frontend", "browser")
     )
 
-    app = Flask(__name__, static_folder=static_dir, static_url_path="")
+    app = Flask(__name__, static_folder=None)
     app.config.from_object(config_class)
 
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
@@ -75,6 +75,10 @@ def create_app(config_class=Config):
             target_file = os.path.join(static_dir, path)
             if path and os.path.isfile(target_file):
                 return send_from_directory(static_dir, path)
+            if path and os.path.isdir(target_file):
+                dir_index = os.path.join(target_file, "index.html")
+                if os.path.isfile(dir_index):
+                    return send_from_directory(target_file, "index.html")
             for index_name in ("index.csr.html", "index.html"):
                 if os.path.isfile(os.path.join(static_dir, index_name)):
                     return send_from_directory(static_dir, index_name)

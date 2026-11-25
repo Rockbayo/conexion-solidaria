@@ -12,12 +12,15 @@ import { OfflineSyncService, CatalogosGenerales } from '../../../core/services/o
   template: `
     <div class="sap-page-header">
       <div class="sap-page-header-inner">
-        <div>
-          <span class="sap-breadcrumb">Portal Comunitario · Sabana Norte de Cundinamarca</span>
-          <h1 class="sap-page-title">Bienvenido a Conexión Solidaria</h1>
-          <p class="sap-page-subtitle">
-            Ingresa a tu cuenta o inscríbete para apoyar a las fundaciones y veredas de nuestra región.
-          </p>
+        <div class="brand-welcome">
+          <img src="assets/social/logo.jpeg" alt="Conexión Solidaria Logo" class="welcome-logo" />
+          <div>
+            <span class="sap-breadcrumb">Portal Comunitario · Sabana Norte de Cundinamarca</span>
+            <h1 class="sap-page-title">Bienvenido a Conexión Solidaria</h1>
+            <p class="sap-page-subtitle">
+              Tecnología para el Cambio Social: articulando fundaciones rurales, voluntarios y donantes con transparencia.
+            </p>
+          </div>
         </div>
         <div class="header-actions">
           <a routerLink="/registro-osal" class="sap-btn-secondary">
@@ -31,6 +34,38 @@ import { OfflineSyncService, CatalogosGenerales } from '../../../core/services/o
     </div>
 
     <main class="sap-container auth-workspace" aria-labelledby="auth-heading">
+      <!-- VITRINA DE IMPACTO REAL EN LAS VEREDAS DE LA SABANA -->
+      <section class="social-showcase" aria-label="Causas sociales reales de la Sabana">
+        <article class="social-banner-card">
+          <img src="assets/social/abuelos_2.jpeg" alt="Adulto mayor campesino en la Sabana" style="object-position: center 42%;" />
+          <div class="social-banner-caption">
+            <span class="social-tag">Adulto Mayor Campesino</span>
+            <strong>Casa de los Abuelos &amp; ASOMAYOR</strong>
+          </div>
+        </article>
+        <article class="social-banner-card">
+          <img src="assets/social/ninos_1.jpeg" alt="Primera infancia y educación rural" style="object-position: center 35%;" />
+          <div class="social-banner-caption">
+            <span class="social-tag">Educación y Niñez Rural</span>
+            <strong>Mis Gotitas de Amor &amp; FUNDAULA</strong>
+          </div>
+        </article>
+        <article class="social-banner-card">
+          <img src="assets/social/animales_1.jpeg" alt="Rescate y bienestar animal en veredas" style="object-position: center 38%;" />
+          <div class="social-banner-caption">
+            <span class="social-tag">Protección y Bienestar Animal</span>
+            <strong>Patitas Campesinas &amp; FUNHUELLAS</strong>
+          </div>
+        </article>
+        <article class="social-banner-card">
+          <img src="assets/social/campamentos_1.jpeg" alt="Campamentos de Vida Nueva y juventud rural" style="object-position: center 35%;" />
+          <div class="social-banner-caption">
+            <span class="social-tag">Rehabilitación y Tejido Social</span>
+            <strong>Campamentos de Vida Nueva</strong>
+          </div>
+        </article>
+      </section>
+
       <div class="auth-tabs" role="tablist" aria-label="Opciones de ingreso y registro">
         <button
           type="button"
@@ -313,6 +348,59 @@ import { OfflineSyncService, CatalogosGenerales } from '../../../core/services/o
     </main>
   `,
   styles: [`
+    .brand-welcome { display: flex; align-items: center; gap: 1rem; }
+    .welcome-logo { height: 64px; width: auto; border-radius: 10px; background: #FFFFFF; padding: 4px 8px; border: 1px solid var(--sap-border-subtle); box-shadow: 0 2px 8px rgba(0, 87, 210, 0.12); object-fit: contain; }
+    .social-showcase {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.9rem;
+      margin-bottom: 1.25rem;
+    }
+    @media (max-width: 920px) {
+      .social-showcase { grid-template-columns: repeat(2, 1fr); }
+    }
+    .social-banner-card {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      height: 138px;
+      border: 1px solid var(--sap-border-subtle);
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.1);
+      background: #0F172A;
+    }
+    .social-banner-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 25%;
+      display: block;
+      transition: transform 0.25s ease;
+    }
+    .social-banner-card:hover img {
+      transform: scale(1.04);
+    }
+    .social-banner-caption {
+      position: absolute;
+      inset: auto 0 0 0;
+      padding: 0.55rem 0.75rem;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.88) 45%, rgba(15, 23, 42, 0.96) 100%);
+      color: #FFFFFF;
+      display: flex;
+      flex-direction: column;
+      gap: 0.12rem;
+    }
+    .social-tag {
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #93C5FD;
+    }
+    .social-banner-caption strong {
+      font-size: 0.83rem;
+      line-height: 1.2;
+      color: #FFFFFF;
+    }
     .header-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
     .auth-tabs {
       display: grid;

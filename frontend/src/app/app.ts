@@ -12,10 +12,10 @@ import { AuthService } from './core/services/auth.service';
       <div class="sap-shellbar-inner">
         <div class="sap-shell-brand">
           <a [routerLink]="authService.estaAutenticado() ? authService.rutaInicioPorRol() : (authService.modoInvitado() ? '/mapa' : '/login')" class="sap-logo">
-            <span class="sap-logo-mark">CS</span>
+            <img src="assets/social/logo.jpeg" alt="Logo Conexión Solidaria" class="sap-logo-img" />
             <span class="sap-logo-text">
               <strong>Conexión Solidaria</strong>
-              <small>Gestión Territorial Sabana Norte</small>
+              <small>Tecnología para el Cambio Social · Sabana Norte</small>
             </span>
           </a>
         </div>
@@ -101,6 +101,15 @@ import { AuthService } from './core/services/auth.service';
       gap: 0.7rem;
       text-decoration: none;
       color: #FFFFFF;
+    }
+    .sap-logo-img {
+      height: 40px;
+      width: auto;
+      border-radius: 6px;
+      background: #FFFFFF;
+      padding: 2px 5px;
+      object-fit: contain;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
     }
     .sap-logo-mark {
       width: 34px;

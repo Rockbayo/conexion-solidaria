@@ -24,4 +24,7 @@ coverage/
 .DS_Store
 Thumbs.db
 *.log
+~$*
+docs/audios_sustentacion/
+
 
